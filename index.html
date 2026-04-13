@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOEIC Part 5/6 문제 생성기 (150+ Questions)</title>
+<title>TOEIC Part 5/6 마스터</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #f0f2f5; min-height: 100vh; color: #333; }
@@ -64,19 +64,26 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 .ebtn:hover { background: #3949ab; color: white; }
 
 .score-box { display: none; background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin: 20px 0; }
+.score-box.visible { display: block; }
 .score-box.show { display: block; }
 .snum { font-size: 60px; font-weight: 950; color: #1a237e; }
 .ssub { color: #999; font-size: 14px; margin-top: 5px; }
 .score-msg { margin-top: 15px; font-size: 18px; font-weight: 700; color: #333; }
 .wrong-bar { display: none; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 12px; padding: 12px 18px; margin-bottom: 15px; font-size: 14px; color: #e65100; font-weight: 700; text-align: center; }
 .wrong-bar.show { display: block; }
+
+.pdf-modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:999; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto; }
+.pdf-inner { background:white; border-radius:16px; padding:24px; width:100%; max-width:700px; margin:auto; }
+.pdf-inner h2 { color:#1a237e; font-size:16px; margin-bottom:6px; }
+.pdf-inner p { font-size:13px; color:#555; margin-bottom:16px; }
+.pdf-close { float:right; background:#1a237e; color:white; border:none; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer; font-size:13px; }
 </style>
 </head>
 <body>
 
 <div class="top">
   <h1>🎯 TOEIC Part 5 & 6 마스터</h1>
-  <p>실전 기출 유형 150문항 탑재 · 상세 해설 제공</p>
+  <p>실전 기출 유형 · 난이도별 문제 · 상세 해설 제공</p>
 </div>
 
 <div class="main">
@@ -106,9 +113,7 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
   </div>
 
   <div class="wrong-bar" id="wrong-bar">📕 오답 복습 모드 - 틀린 문제만 모아 풀기</div>
-  
   <div class="result" id="result"></div>
-  
   <div class="score-box" id="score-box">
     <div class="snum" id="snum">-</div>
     <div class="ssub">맞은 개수 / 전체 문항</div>
@@ -123,93 +128,356 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 </div>
 
 <script>
-// --- 데이터 섹션 ---
+// ================================================================
+// PART 5 데이터 (초급 50 / 중급 50 / 고급 50)
+// ================================================================
 const PART5_POOL = {
-  초급: [],
-  중급: [],
-  고급: []
-};
 
-// 초급 40문항 생성 (샘플 확장)
-for(let i=1; i<=40; i++) {
-  PART5_POOL.초급.push({
-    id: 1000 + i,
-    type: i % 2 === 0 ? "품사구분" : "동사시제",
-    stem: i % 3 === 0 ? "The manager ------- the report yesterday." : "Please review the ------- documents before the meeting.",
-    options: i % 3 === 0 
-      ? {A:"finished", B:"finishes", C:"finishing", D:"finish"} 
-      : {A:"attach", B:"attached", C:"attaching", D:"attachment"},
-    answer: i % 3 === 0 ? "A" : "B",
-    exp: i % 3 === 0 ? "yesterday가 있으므로 과거 시제가 적절합니다." : "명사 documents를 수식하는 분사 형용사가 필요합니다.",
-    tr: i % 3 === 0 ? "관리자는 어제 보고서를 끝냈습니다." : "회의 전에 첨부된 문서를 검토해 주세요."
-  });
-}
+초급: [
+  {id:1001, type:"동사시제", stem:"The store ------- at 9 a.m. every day.", options:{A:"open",B:"opens",C:"opening",D:"opened"}, answer:"B", exp:"주어가 3인칭 단수(the store)이고 every day가 있으므로 현재 단순 3인칭 단수형 opens가 정답입니다.", tr:"그 가게는 매일 오전 9시에 문을 엽니다."},
+  {id:1002, type:"품사", stem:"She is a very ------- worker in the office.", options:{A:"hard",B:"hardly",C:"hardness",D:"harden"}, answer:"A", exp:"명사(worker)를 수식하는 형용사 자리입니다. hard(열심히 하는)가 정답입니다.", tr:"그녀는 사무실에서 매우 열심히 일하는 직원입니다."},
+  {id:1003, type:"전치사", stem:"The meeting will be held ------- Monday morning.", options:{A:"in",B:"at",C:"on",D:"by"}, answer:"C", exp:"요일(Monday) 앞에는 전치사 on을 씁니다.", tr:"회의는 월요일 아침에 열릴 것입니다."},
+  {id:1004, type:"동사시제", stem:"They ------- the project last Friday.", options:{A:"finish",B:"finishes",C:"finishing",D:"finished"}, answer:"D", exp:"last Friday라는 과거 시간 표현이 있으므로 과거형 finished가 정답입니다.", tr:"그들은 지난 금요일에 프로젝트를 끝냈습니다."},
+  {id:1005, type:"대명사", stem:"Please send ------- the report by email.", options:{A:"I",B:"my",C:"me",D:"mine"}, answer:"C", exp:"send의 간접목적어 자리이므로 목적격 me가 정답입니다.", tr:"이메일로 저에게 보고서를 보내주세요."},
+  {id:1006, type:"품사", stem:"The ------- of the new product will begin next month.", options:{A:"produce",B:"produced",C:"production",D:"productive"}, answer:"C", exp:"관사 The 뒤에는 명사가 와야 합니다. production(생산)이 정답입니다.", tr:"새 제품의 생산은 다음 달에 시작될 것입니다."},
+  {id:1007, type:"전치사", stem:"The office is located ------- the third floor.", options:{A:"in",B:"on",C:"at",D:"by"}, answer:"B", exp:"층(floor) 앞에는 전치사 on을 씁니다.", tr:"사무실은 3층에 위치해 있습니다."},
+  {id:1008, type:"접속사", stem:"------- it was raining, they continued the outdoor event.", options:{A:"Because",B:"Although",C:"So",D:"And"}, answer:"B", exp:"앞뒤 절이 대조 관계이므로 양보 접속사 Although(비록 ~이지만)가 정답입니다.", tr:"비가 오고 있었지만 그들은 야외 행사를 계속했습니다."},
+  {id:1009, type:"동사형태", stem:"Please ------- your name on the form.", options:{A:"write",B:"writes",C:"writing",D:"written"}, answer:"A", exp:"Please로 시작하는 명령문이므로 동사 원형 write가 정답입니다.", tr:"양식에 이름을 써 주세요."},
+  {id:1010, type:"비교급", stem:"This laptop is ------- than the older model.", options:{A:"fast",B:"faster",C:"fastest",D:"fastly"}, answer:"B", exp:"than이 있으므로 비교급 faster가 정답입니다.", tr:"이 노트북은 이전 모델보다 더 빠릅니다."},
+  {id:1011, type:"어휘", stem:"Could you ------- the door, please? It's cold.", options:{A:"close",B:"open",C:"break",D:"paint"}, answer:"A", tr:"문을 닫아주시겠어요? 춥네요.", exp:"춥다는 이유로 요청하는 상황이므로 '닫다(close)'가 적절합니다."},
+  {id:1012, type:"관사", stem:"She needs ------- umbrella because it looks like rain.", options:{A:"a",B:"an",C:"the",D:"(없음)"}, answer:"B", exp:"umbrella는 모음 u로 시작하므로 부정관사 an이 정답입니다.", tr:"비가 올 것 같아서 그녀는 우산이 필요합니다."},
+  {id:1013, type:"동사시제", stem:"We ------- in this office for five years.", options:{A:"work",B:"worked",C:"have worked",D:"are working"}, answer:"C", exp:"for five years는 현재완료와 함께 쓰여 '(지금까지) ~해왔다'를 나타냅니다.", tr:"우리는 이 사무실에서 5년째 근무해 오고 있습니다."},
+  {id:1014, type:"전치사", stem:"The conference will last ------- two days.", options:{A:"for",B:"since",C:"during",D:"by"}, answer:"A", exp:"기간(two days) 앞에는 전치사 for를 씁니다.", tr:"회의는 이틀 동안 계속될 것입니다."},
+  {id:1015, type:"품사", stem:"The manager spoke ------- at the meeting.", options:{A:"confident",B:"confidence",C:"confidently",D:"confide"}, answer:"C", exp:"동사(spoke)를 수식하는 부사 자리입니다. confidently가 정답입니다.", tr:"매니저는 회의에서 자신 있게 말했습니다."},
+  {id:1016, type:"어휘", stem:"The train ------- from Seoul to Busan takes about 2.5 hours.", options:{A:"trip",B:"travel",C:"road",D:"way"}, answer:"A", exp:"trip은 '이동, 여행'을 뜻하는 명사로 '~행 열차 여행'에 적합합니다.", tr:"서울에서 부산까지의 기차 여정은 약 2시간 30분 걸립니다."},
+  {id:1017, type:"동사형태", stem:"She has been ------- for that company for three years.", options:{A:"work",B:"works",C:"working",D:"worked"}, answer:"C", exp:"has been + v-ing: 현재완료진행형 구조입니다.", tr:"그녀는 그 회사에서 3년째 일하고 있습니다."},
+  {id:1018, type:"접속사", stem:"He didn't attend the meeting ------- he was sick.", options:{A:"although",B:"because",C:"unless",D:"while"}, answer:"B", exp:"이유를 나타내는 접속사 because가 정답입니다.", tr:"그는 아파서 회의에 참석하지 못했습니다."},
+  {id:1019, type:"전치사", stem:"The report must be submitted ------- Friday.", options:{A:"until",B:"by",C:"since",D:"for"}, answer:"B", exp:"'~까지(기한)'을 나타낼 때는 by를 씁니다.", tr:"보고서는 금요일까지 제출되어야 합니다."},
+  {id:1020, type:"품사", stem:"We need a ------- response from the client.", options:{A:"quick",B:"quickly",C:"quickness",D:"quicker"}, answer:"A", exp:"명사(response)를 수식하는 형용사 자리입니다. quick이 정답입니다.", tr:"우리는 고객으로부터 빠른 답변이 필요합니다."},
+  {id:1021, type:"동사시제", stem:"The package ------- tomorrow morning.", options:{A:"arrive",B:"arrives",C:"will arrive",D:"arrived"}, answer:"C", exp:"tomorrow가 있으므로 미래를 나타내는 will arrive가 가장 자연스럽습니다.", tr:"소포는 내일 아침에 도착할 것입니다."},
+  {id:1022, type:"어휘", stem:"Please ------- the form completely before submitting it.", options:{A:"fill out",B:"fill in",C:"fill up",D:"fill out"}, answer:"A", exp:"fill out a form은 '양식을 작성하다'는 관용 표현입니다.", tr:"제출하기 전에 양식을 완전히 작성해 주세요."},
+  {id:1023, type:"관계사", stem:"The employee ------- submitted the report was praised.", options:{A:"who",B:"which",C:"what",D:"where"}, answer:"A", exp:"선행사가 사람(The employee)이므로 관계대명사 who가 정답입니다.", tr:"보고서를 제출한 직원은 칭찬을 받았습니다."},
+  {id:1024, type:"전치사", stem:"The company is famous ------- its excellent customer service.", options:{A:"for",B:"of",C:"about",D:"with"}, answer:"A", exp:"be famous for는 '~로 유명하다'는 관용 표현입니다.", tr:"그 회사는 훌륭한 고객 서비스로 유명합니다."},
+  {id:1025, type:"품사", stem:"The ------- of the new branch will be held next week.", options:{A:"open",B:"opens",C:"opening",D:"openly"}, answer:"C", exp:"관사 The 뒤 명사 자리입니다. opening(개업식, 개장)이 정답입니다.", tr:"새 지점의 개업식은 다음 주에 열릴 것입니다."},
+  {id:1026, type:"동사형태", stem:"The files need to be ------- before the meeting.", options:{A:"review",B:"reviews",C:"reviewing",D:"reviewed"}, answer:"D", exp:"need to be + 과거분사: 수동의 의미를 나타냅니다.", tr:"파일들은 회의 전에 검토되어야 합니다."},
+  {id:1027, type:"접속사", stem:"------- you have any questions, please contact us.", options:{A:"Although",B:"If",C:"Because",D:"Until"}, answer:"B", exp:"조건을 나타내는 접속사 If(만약 ~하면)가 정답입니다.", tr:"질문이 있으시면 연락해 주세요."},
+  {id:1028, type:"비교급", stem:"This model is the ------- of all the options available.", options:{A:"cheap",B:"cheaper",C:"cheapest",D:"cheaply"}, answer:"C", exp:"'of all'이 있으므로 최상급 cheapest가 정답입니다.", tr:"이 모델은 이용 가능한 모든 옵션 중에서 가장 저렴합니다."},
+  {id:1029, type:"어휘", stem:"The manager asked the team to ------- a new strategy.", options:{A:"develop",B:"delivery",C:"department",D:"depend"}, answer:"A", exp:"동사 자리이며 '전략을 개발하다(develop a strategy)'가 자연스럽습니다.", tr:"매니저는 팀에게 새로운 전략을 개발해 달라고 요청했습니다."},
+  {id:1030, type:"동사시제", stem:"By the time she arrived, we ------- all the food.", options:{A:"eat",B:"have eaten",C:"had eaten",D:"ate"}, answer:"C", exp:"by the time + 과거절 → 주절은 과거완료(had + p.p)를 씁니다.", tr:"그녀가 도착했을 때 우리는 음식을 이미 다 먹은 상태였습니다."},
+  {id:1031, type:"전치사", stem:"Thank you ------- your prompt reply.", options:{A:"of",B:"for",C:"with",D:"about"}, answer:"B", exp:"thank you for는 '~에 감사하다'는 관용 표현입니다.", tr:"신속한 답변에 감사드립니다."},
+  {id:1032, type:"품사", stem:"The ------- team worked hard to meet the deadline.", options:{A:"entire",B:"entirely",C:"entirety",D:"entitle"}, answer:"A", exp:"명사(team)를 수식하는 형용사 자리입니다. entire(전체의)가 정답입니다.", tr:"팀 전체가 마감 기한을 맞추기 위해 열심히 일했습니다."},
+  {id:1033, type:"어휘", stem:"The store will be ------- on Sunday for renovation.", options:{A:"closed",B:"opened",C:"expanded",D:"moved"}, answer:"A", exp:"공사(renovation)를 이유로 문을 닫는 상황이므로 closed가 적절합니다.", tr:"그 가게는 리모델링으로 일요일에 문을 닫습니다."},
+  {id:1034, type:"접속사", stem:"She studied hard ------- she could pass the exam.", options:{A:"so that",B:"because",C:"although",D:"unless"}, answer:"A", exp:"목적을 나타내는 so that(~하기 위하여)이 정답입니다.", tr:"그녀는 시험에 합격하기 위해 열심히 공부했습니다."},
+  {id:1035, type:"동사형태", stem:"He ------- the phone when the boss called.", options:{A:"answers",B:"is answering",C:"was answering",D:"answered"}, answer:"C", exp:"when절의 과거 단순(called)과 진행 중이던 행동은 과거진행(was answering)으로 표현합니다.", tr:"보스가 전화했을 때 그는 전화를 받고 있었습니다."},
+  {id:1036, type:"관사", stem:"Please take ------- seat near the window.", options:{A:"a",B:"an",C:"the",D:"(없음)"}, answer:"A", exp:"특정되지 않은 자리 하나를 가리키므로 부정관사 a가 정답입니다.", tr:"창문 옆 자리에 앉아 주세요."},
+  {id:1037, type:"어휘", stem:"We will ------- the meeting to next week due to scheduling conflicts.", options:{A:"postpone",B:"propose",C:"prevent",D:"proceed"}, answer:"A", exp:"일정 충돌로 미루는 상황이므로 postpone(연기하다)이 정답입니다.", tr:"일정 충돌로 인해 회의를 다음 주로 연기하겠습니다."},
+  {id:1038, type:"품사", stem:"The ------- of the project depends on teamwork.", options:{A:"succeed",B:"successful",C:"success",D:"successfully"}, answer:"C", exp:"관사 The 뒤 주어 자리이므로 명사 success가 정답입니다.", tr:"프로젝트의 성공은 팀워크에 달려 있습니다."},
+  {id:1039, type:"전치사", stem:"The seminar is scheduled ------- 2 p.m. ------- the main hall.", options:{A:"at / in",B:"on / at",C:"in / on",D:"for / in"}, answer:"A", exp:"시각 앞에는 at, 장소(건물 내부) 앞에는 in을 씁니다.", tr:"세미나는 메인 홀에서 오후 2시에 예정되어 있습니다."},
+  {id:1040, type:"동사시제", stem:"She ------- to the headquarters twice this year.", options:{A:"goes",B:"went",C:"has gone",D:"had gone"}, answer:"C", exp:"this year(올해)와 함께 쓰이면 현재완료가 적절합니다.", tr:"그녀는 올해 본사에 두 번 갔습니다."},
+  {id:1041, type:"어휘", stem:"The ------- schedule will be announced later.", options:{A:"final",B:"finally",C:"finalize",D:"finality"}, answer:"A", exp:"명사(schedule)를 수식하는 형용사 final(최종의)이 정답입니다.", tr:"최종 일정은 나중에 발표될 것입니다."},
+  {id:1042, type:"접속사", stem:"You should call ahead ------- the restaurant may be full.", options:{A:"although",B:"unless",C:"because",D:"if"}, answer:"C", exp:"앞 문장의 이유를 설명하는 because가 정답입니다.", tr:"식당이 꽉 찰 수 있으므로 미리 전화해야 합니다."},
+  {id:1043, type:"품사", stem:"He gave a ------- speech at the graduation ceremony.", options:{A:"move",B:"moves",C:"moving",D:"moved"}, answer:"C", exp:"명사(speech)를 수식하는 형용사 역할의 현재분사 moving(감동적인)이 정답입니다.", tr:"그는 졸업식에서 감동적인 연설을 했습니다."},
+  {id:1044, type:"전치사", stem:"The decision is ------- the manager.", options:{A:"up to",B:"up for",C:"out of",D:"along with"}, answer:"A", exp:"be up to someone은 '~에게 달려 있다'는 관용 표현입니다.", tr:"그 결정은 매니저에게 달려 있습니다."},
+  {id:1045, type:"동사형태", stem:"The report must ------- to the director before noon.", options:{A:"submit",B:"submits",C:"be submitted",D:"submitting"}, answer:"C", exp:"must 뒤에 수동태(be + p.p)가 와야 합니다.", tr:"보고서는 정오 전에 이사에게 제출되어야 합니다."},
+  {id:1046, type:"어휘", stem:"Please ------- me when the order is ready.", options:{A:"notify",B:"notice",C:"notion",D:"notable"}, answer:"A", exp:"동사 자리이며 notify(알리다)가 적절합니다. notice는 명사/동사지만 '알리다' 의미로는 notify가 더 적합합니다.", tr:"주문이 준비되면 알려주세요."},
+  {id:1047, type:"관계사", stem:"The city ------- she grew up has changed a lot.", options:{A:"who",B:"which",C:"where",D:"that"}, answer:"C", exp:"선행사가 장소(city)이고 grew up in 구조이므로 관계부사 where가 정답입니다.", tr:"그녀가 자란 도시는 많이 변했습니다."},
+  {id:1048, type:"비교급", stem:"The new office is ------- comfortable than the old one.", options:{A:"more",B:"most",C:"much",D:"many"}, answer:"A", exp:"2음절 이상의 형용사 비교급은 more + 형용사로 만듭니다.", tr:"새 사무실은 이전 것보다 더 편안합니다."},
+  {id:1049, type:"품사", stem:"The company provides ------- training for all new employees.", options:{A:"extend",B:"extensive",C:"extension",D:"extensively"}, answer:"B", exp:"명사(training)를 수식하는 형용사 extensive(광범위한)가 정답입니다.", tr:"회사는 모든 신입 직원에게 광범위한 교육을 제공합니다."},
+  {id:1050, type:"동사시제", stem:"The store ------- since the renovation started.", options:{A:"is closed",B:"has been closed",C:"was closed",D:"will close"}, answer:"B", exp:"since + 과거 사건과 함께 현재완료가 사용됩니다. '리모델링이 시작된 이후 줄곧 닫혀 있다'는 의미입니다.", tr:"그 가게는 리모델링이 시작된 이후로 문을 닫고 있습니다."},
+],
 
-// 중급 40문항 (샘플 확장)
-for(let i=1; i<=40; i++) {
-  PART5_POOL.중급.push({
-    id: 2000 + i,
-    type: i % 2 === 0 ? "어휘" : "접속사/전치사",
-    stem: i % 2 === 0 ? "The company's profits rose ------- despite the economic downturn." : "------- the heavy rain, the event was a great success.",
-    options: i % 2 === 0 
-      ? {A:"sharp", B:"sharply", C:"sharpen", D:"sharpness"} 
-      : {A:"Although", B:"Because", C:"Despite", D:"Unless"},
-    answer: i % 2 === 0 ? "B" : "C",
-    exp: i % 2 === 0 ? "동사 rose를 수식하는 부사가 필요합니다." : "명사구 앞에는 전치사가 와야 하며 의미상 '불구하고'가 적절합니다.",
-    tr: i % 2 === 0 ? "경기 침체에도 불구하고 회사의 이익이 급격히 상승했습니다." : "폭우에도 불구하고 행사는 큰 성공을 거두었습니다."
-  });
-}
+중급: [
+  {id:2001, type:"어휘/전치사", stem:"The company decided to ------- with a smaller vendor to cut costs.", options:{A:"contract",B:"contact",C:"compare",D:"compete"}, answer:"A", exp:"contract with: '~와 계약을 맺다'는 표현입니다. contact는 '연락하다'이므로 맥락상 contract가 정답입니다.", tr:"회사는 비용을 절감하기 위해 더 작은 공급업체와 계약하기로 결정했습니다."},
+  {id:2002, type:"품사", stem:"The ------- of the merger was not anticipated by analysts.", options:{A:"announce",B:"announced",C:"announcement",D:"announcing"}, answer:"C", exp:"관사 The 뒤 주어 자리이므로 명사 announcement(발표)가 정답입니다.", tr:"합병 발표는 애널리스트들이 예상하지 못했습니다."},
+  {id:2003, type:"어휘", stem:"The ------- report highlights several key issues facing the industry.", options:{A:"quarterly",B:"quartered",C:"quarter",D:"quartering"}, answer:"A", exp:"명사(report)를 수식하는 형용사 quarterly(분기별의)가 정답입니다.", tr:"분기 보고서는 업계가 직면한 몇 가지 주요 문제를 강조합니다."},
+  {id:2004, type:"접속사/전치사", stem:"------- the high cost, many customers still prefer the premium model.", options:{A:"Although",B:"Despite",C:"Because of",D:"Even if"}, answer:"B", exp:"명사구(the high cost) 앞에는 전치사 Despite(~에도 불구하고)가 와야 합니다. Although는 절과 함께 씁니다.", tr:"높은 비용에도 불구하고 많은 고객들이 여전히 프리미엄 모델을 선호합니다."},
+  {id:2005, type:"동사형태", stem:"The proposal ------- by the committee before the deadline.", options:{A:"approve",B:"was approved",C:"is approving",D:"has approve"}, answer:"B", exp:"수동태(be + p.p) 구조입니다. 주어가 제안서이므로 수동이 적절합니다.", tr:"그 제안서는 마감 기한 전에 위원회에 의해 승인되었습니다."},
+  {id:2006, type:"어휘", stem:"Employees are encouraged to ------- their concerns to the HR department.", options:{A:"address",B:"access",C:"attract",D:"advance"}, answer:"A", exp:"address concerns: '우려 사항을 제기하다/전달하다'는 관용 표현입니다.", tr:"직원들은 인사부에 자신의 우려 사항을 전달하도록 권장됩니다."},
+  {id:2007, type:"품사", stem:"The ------- in sales figures was a pleasant surprise for investors.", options:{A:"increase",B:"increased",C:"increasingly",D:"increasing"}, answer:"A", exp:"관사 The 뒤 주어 자리이므로 명사 increase(증가)가 정답입니다.", tr:"판매 수치의 증가는 투자자들에게 즐거운 놀라움이었습니다."},
+  {id:2008, type:"어휘", stem:"The new policy will take ------- on the first of next month.", options:{A:"effect",B:"affect",C:"place",D:"charge"}, answer:"A", exp:"take effect: '효력을 발휘하다, 시행되다'는 관용 표현입니다.", tr:"새로운 정책은 다음 달 1일부터 효력을 발휘합니다."},
+  {id:2009, type:"동사형태", stem:"If the budget were approved, we ------- start the project immediately.", options:{A:"can",B:"will",C:"could",D:"should"}, answer:"C", exp:"가정법 과거: If + 과거형 → 주절에는 조동사 과거형(could/would/might)을 씁니다.", tr:"예산이 승인된다면, 우리는 즉시 프로젝트를 시작할 수 있을 텐데요."},
+  {id:2010, type:"접속사", stem:"------- the renovations are complete, the office will reopen.", options:{A:"By the time",B:"Until",C:"Once",D:"Before"}, answer:"C", exp:"'일단 ~하면'을 의미하는 once가 정답입니다.", tr:"리모델링이 완료되면 사무실은 다시 문을 열 것입니다."},
+  {id:2011, type:"어휘", stem:"The company is looking for someone with ------- experience in marketing.", options:{A:"extensive",B:"extension",C:"extend",D:"extensively"}, answer:"A", exp:"명사(experience)를 수식하는 형용사 extensive(광범위한)가 정답입니다.", tr:"회사는 마케팅 분야에서 광범위한 경험을 가진 사람을 찾고 있습니다."},
+  {id:2012, type:"품사", stem:"The sales team performed ------- during the last quarter.", options:{A:"exception",B:"exceptional",C:"exceptionally",D:"except"}, answer:"C", exp:"동사(performed)를 수식하는 부사 자리입니다. exceptionally(탁월하게)가 정답입니다.", tr:"영업팀은 지난 분기에 탁월한 성과를 보였습니다."},
+  {id:2013, type:"동사시제", stem:"By next year, the company ------- in business for 50 years.", options:{A:"will be",B:"has been",C:"will have been",D:"had been"}, answer:"C", exp:"by next year(미래 기준 시점)와 함께 미래완료(will have been)를 씁니다.", tr:"내년이면 그 회사는 50년째 영업을 이어온 것이 됩니다."},
+  {id:2014, type:"어휘", stem:"She was ------- responsible for managing the entire department.", options:{A:"sole",B:"solely",C:"solemn",D:"solid"}, answer:"B", exp:"동사를 수식하는 부사 자리입니다. solely(단독으로, 오로지)가 정답입니다.", tr:"그녀는 부서 전체 관리를 단독으로 책임졌습니다."},
+  {id:2015, type:"전치사", stem:"The manager is responsible ------- overseeing all operations.", options:{A:"of",B:"for",C:"with",D:"about"}, answer:"B", exp:"be responsible for: '~에 대한 책임이 있다'는 관용 표현입니다.", tr:"매니저는 모든 운영을 감독할 책임이 있습니다."},
+  {id:2016, type:"어휘", stem:"The report must ------- the needs of both employees and management.", options:{A:"address",B:"attend",C:"access",D:"afford"}, answer:"A", exp:"address the needs: '필요를 다루다/충족하다'는 표현입니다.", tr:"보고서는 직원과 경영진 모두의 요구를 다루어야 합니다."},
+  {id:2017, type:"접속사", stem:"The meeting was postponed ------- the CEO's unexpected illness.", options:{A:"because",B:"due to",C:"so that",D:"even though"}, answer:"B", exp:"명사구(the CEO's unexpected illness) 앞에는 전치사구 due to(~로 인해)가 와야 합니다.", tr:"회의는 CEO의 갑작스러운 병환으로 인해 연기되었습니다."},
+  {id:2018, type:"품사", stem:"All ------- must complete the training within 30 days.", options:{A:"employ",B:"employees",C:"employed",D:"employment"}, answer:"B", exp:"all 뒤에 복수 명사가 와야 합니다. employees(직원들)가 정답입니다.", tr:"모든 직원은 30일 이내에 교육을 이수해야 합니다."},
+  {id:2019, type:"어휘", stem:"The manager was ------- with the team's performance this quarter.", options:{A:"pleased",B:"pleasing",C:"pleasure",D:"please"}, answer:"A", exp:"be pleased with: '~에 만족하다'는 표현입니다. 주어가 사람이므로 pleased(수동 형태)가 정답입니다.", tr:"매니저는 이번 분기 팀의 성과에 만족했습니다."},
+  {id:2020, type:"동사형태", stem:"The data ------- collected before the analysis can begin.", options:{A:"must be",B:"must have",C:"must",D:"must being"}, answer:"A", exp:"must be + 과거분사: 수동태 의미로 '반드시 수집되어야 한다'입니다.", tr:"분석이 시작되기 전에 데이터가 먼저 수집되어야 합니다."},
+  {id:2021, type:"어휘", stem:"The ------- agreement was signed by both parties last Monday.", options:{A:"confidential",B:"confident",C:"confide",D:"confidence"}, answer:"A", exp:"명사(agreement)를 수식하는 형용사 confidential(기밀의)이 정답입니다.", tr:"기밀 합의서는 지난 월요일 양측에 의해 서명되었습니다."},
+  {id:2022, type:"접속사", stem:"------- the weather improves, the outdoor event will be cancelled.", options:{A:"Unless",B:"If",C:"Although",D:"Because"}, answer:"A", exp:"unless: '~하지 않으면'이라는 부정 조건을 나타냅니다.", tr:"날씨가 좋아지지 않으면 야외 행사는 취소될 것입니다."},
+  {id:2023, type:"품사", stem:"The ------- of the project was praised by the entire board.", options:{A:"complete",B:"completion",C:"completed",D:"completely"}, answer:"B", exp:"관사 The 뒤 주어 자리이므로 명사 completion(완성)이 정답입니다.", tr:"프로젝트의 완성은 전체 이사회로부터 칭찬을 받았습니다."},
+  {id:2024, type:"어휘", stem:"The new policy is intended to ------- employee productivity.", options:{A:"boost",B:"book",C:"board",D:"bond"}, answer:"A", exp:"직원 생산성을 높이는 의도이므로 boost(향상시키다)가 정답입니다.", tr:"새로운 정책은 직원 생산성을 높이기 위한 것입니다."},
+  {id:2025, type:"동사형태", stem:"The candidates ------- interviewed over the next two weeks.", options:{A:"will be",B:"have",C:"are",D:"was"}, answer:"A", exp:"수동태 미래형(will be + p.p)이 정답입니다.", tr:"지원자들은 앞으로 2주에 걸쳐 면접을 볼 것입니다."},
+  {id:2026, type:"어휘", stem:"The manager ------- the decision without consulting the team.", options:{A:"made",B:"did",C:"took",D:"had"}, answer:"A", exp:"make a decision: '결정을 내리다'는 관용 표현입니다.", tr:"매니저는 팀과 상의 없이 결정을 내렸습니다."},
+  {id:2027, type:"품사", stem:"The ------- deadline was set by the director.", options:{A:"firmly",B:"firm",C:"firming",D:"firmness"}, answer:"B", exp:"명사(deadline)를 수식하는 형용사 firm(확고한)이 정답입니다.", tr:"확고한 마감 기한이 이사에 의해 설정되었습니다."},
+  {id:2028, type:"접속사", stem:"She finished the project on time ------- many obstacles.", options:{A:"in spite of",B:"because",C:"although",D:"whether"}, answer:"A", exp:"명사구(many obstacles) 앞에는 in spite of(~에도 불구하고)가 와야 합니다.", tr:"그녀는 많은 장애물에도 불구하고 제때 프로젝트를 끝냈습니다."},
+  {id:2029, type:"어휘", stem:"The team worked ------- to meet the strict deadline.", options:{A:"efficiently",B:"efficient",C:"efficiency",D:"effect"}, answer:"A", exp:"동사(worked)를 수식하는 부사 efficiently(효율적으로)가 정답입니다.", tr:"팀은 엄격한 마감 기한을 맞추기 위해 효율적으로 일했습니다."},
+  {id:2030, type:"동사형태", stem:"He suggested ------- the meeting to a more convenient time.", options:{A:"reschedule",B:"rescheduled",C:"rescheduling",D:"to reschedule"}, answer:"C", exp:"suggest + v-ing: suggest 뒤에는 동명사(v-ing)가 옵니다.", tr:"그는 회의를 더 편한 시간으로 재조정할 것을 제안했습니다."},
+  {id:2031, type:"어휘", stem:"The ------- for the position requires at least five years of experience.", options:{A:"qualification",B:"quality",C:"question",D:"quest"}, answer:"A", exp:"자격 요건을 나타내는 qualification(자격 요건)이 정답입니다.", tr:"이 직위의 자격 요건은 최소 5년의 경험을 요구합니다."},
+  {id:2032, type:"품사", stem:"The CEO gave a ------- talk on innovation at the conference.", options:{A:"keynote",B:"key",C:"keenly",D:"keen"}, answer:"A", exp:"keynote talk/speech: '기조 강연'이라는 복합명사 표현입니다.", tr:"CEO는 회의에서 혁신에 관한 기조 강연을 했습니다."},
+  {id:2033, type:"접속사", stem:"The project will proceed ------- all stakeholders agree.", options:{A:"provided that",B:"in case",C:"unless",D:"in spite of"}, answer:"A", exp:"provided that: '~하는 조건으로'라는 조건의 접속사입니다.", tr:"모든 이해관계자들이 동의하는 조건 하에 프로젝트는 진행됩니다."},
+  {id:2034, type:"어휘", stem:"The company ------- a significant profit in the third quarter.", options:{A:"reported",B:"said",C:"spoke",D:"told"}, answer:"A", exp:"report a profit: '이익을 보고하다'는 관용 표현입니다.", tr:"회사는 3분기에 상당한 이익을 보고했습니다."},
+  {id:2035, type:"품사", stem:"Staff members are expected to behave ------- at all times.", options:{A:"profession",B:"professional",C:"professionally",D:"professions"}, answer:"C", exp:"동사(behave)를 수식하는 부사 professionally(전문적으로)가 정답입니다.", tr:"직원들은 항상 전문적으로 행동해야 합니다."},
+  {id:2036, type:"어휘", stem:"His presentation was ------- praised for its clarity and depth.", options:{A:"widely",B:"wide",C:"widening",D:"width"}, answer:"A", exp:"동사(praised)를 수식하는 부사 widely(광범위하게)가 정답입니다.", tr:"그의 발표는 명확성과 깊이로 널리 칭찬받았습니다."},
+  {id:2037, type:"동사형태", stem:"The committee is considering ------- additional funds for the project.", options:{A:"allocate",B:"allocates",C:"allocated",D:"allocating"}, answer:"D", exp:"consider + v-ing: consider 뒤에는 동명사가 옵니다.", tr:"위원회는 프로젝트에 추가 자금을 배정하는 것을 고려 중입니다."},
+  {id:2038, type:"전치사", stem:"The company's revenue grew ------- 15% compared to last year.", options:{A:"at",B:"by",C:"in",D:"to"}, answer:"B", exp:"변화량/증가율 앞에는 전치사 by를 씁니다.", tr:"회사의 수익은 전년 대비 15% 성장했습니다."},
+  {id:2039, type:"어휘", stem:"The manager needs to ------- the budget proposal by end of day.", options:{A:"finalize",B:"final",C:"finally",D:"finality"}, answer:"A", exp:"동사 자리이며 finalize(최종 확정하다)가 적절합니다.", tr:"매니저는 오늘 안으로 예산 제안을 최종 확정해야 합니다."},
+  {id:2040, type:"품사", stem:"All employees must comply with the new ------- regulations.", options:{A:"safety",B:"safe",C:"safely",D:"safeguard"}, answer:"A", exp:"명사(safety)가 뒤 명사를 수식하는 명사수식어 자리입니다. safety regulations: '안전 규정'.", tr:"모든 직원은 새로운 안전 규정을 준수해야 합니다."},
+  {id:2041, type:"접속사", stem:"The proposal was accepted ------- it needed some revisions.", options:{A:"although",B:"because",C:"unless",D:"so that"}, answer:"A", exp:"양보의 접속사 although(비록 ~이지만)가 정답입니다.", tr:"비록 수정이 필요했지만 제안서는 수락되었습니다."},
+  {id:2042, type:"어휘", stem:"The company is ------- to delivering high-quality products.", options:{A:"committed",B:"admitted",C:"submitted",D:"permitted"}, answer:"A", exp:"be committed to: '~에 전념하다/헌신하다'는 관용 표현입니다.", tr:"회사는 고품질 제품 제공에 전념합니다."},
+  {id:2043, type:"동사형태", stem:"She ------- her presentation skills since joining the company.", options:{A:"improve",B:"has improved",C:"improves",D:"improved"}, answer:"B", exp:"since joining(입사 이후 지금까지) → 현재완료가 적절합니다.", tr:"그녀는 입사 이후 프레젠테이션 기술을 향상시켜 왔습니다."},
+  {id:2044, type:"어휘", stem:"The new system will ------- the manual process.", options:{A:"replace",B:"repair",C:"repeat",D:"report"}, answer:"A", exp:"수동 프로세스를 대체하는 상황이므로 replace(대체하다)가 적절합니다.", tr:"새로운 시스템은 수동 프로세스를 대체할 것입니다."},
+  {id:2045, type:"품사", stem:"The company's ------- report showed a 20% increase in revenue.", options:{A:"annual",B:"annually",C:"annualize",D:"annulment"}, answer:"A", exp:"명사(report)를 수식하는 형용사 annual(연간의)이 정답입니다.", tr:"회사의 연간 보고서는 수익이 20% 증가했음을 보여주었습니다."},
+  {id:2046, type:"어휘", stem:"The team held an ------- discussion to solve the problem.", options:{A:"in-depth",B:"in-house",C:"in-time",D:"in-line"}, answer:"A", exp:"in-depth discussion: '심층적인 토론'이라는 표현입니다.", tr:"팀은 문제를 해결하기 위해 심층적인 토론을 가졌습니다."},
+  {id:2047, type:"전치사", stem:"The company will invest heavily ------- new technology.", options:{A:"at",B:"on",C:"in",D:"of"}, answer:"C", exp:"invest in: '~에 투자하다'는 관용 표현입니다.", tr:"회사는 새로운 기술에 대규모로 투자할 것입니다."},
+  {id:2048, type:"동사형태", stem:"The director ------- the staff to improve their communication skills.", options:{A:"encourage",B:"encouraging",C:"has encouraged",D:"encourages"}, answer:"C", exp:"과거 사건(joining 이후 현재까지)이므로 현재완료 has encouraged가 자연스럽습니다.", tr:"이사는 직원들이 의사소통 기술을 향상시키도록 독려해 왔습니다."},
+  {id:2049, type:"어휘", stem:"The CEO emphasized the importance of ------- in the workplace.", options:{A:"collaboration",B:"collapse",C:"collection",D:"collision"}, answer:"A", exp:"직장 내 중요성 강조 문맥에서 collaboration(협업)이 적절합니다.", tr:"CEO는 직장 내 협업의 중요성을 강조했습니다."},
+  {id:2050, type:"품사", stem:"The team's ------- approach to problem-solving impressed the clients.", options:{A:"creation",B:"creative",C:"creatively",D:"create"}, answer:"B", exp:"명사(approach)를 수식하는 형용사 creative(창의적인)가 정답입니다.", tr:"팀의 창의적인 문제 해결 방식은 고객들에게 깊은 인상을 남겼습니다."},
+],
 
-// 고급 40문항 (샘플 확장)
-for(let i=1; i<=40; i++) {
-  PART5_POOL.고급.push({
-    id: 3000 + i,
-    type: i % 2 === 0 ? "고급어휘" : "특수구문/가정법",
-    stem: i % 2 === 0 ? "The proposal was ------- on the board's final approval." : "------- the CEO known about the issue, he would have acted sooner.",
-    options: i % 2 === 0 
-      ? {A:"contingent", B:"consistent", C:"competent", D:"compliant"} 
-      : {A:"If", B:"Had", C:"Should", D:"Were"},
-    answer: i % 2 === 0 ? "A" : "B",
-    exp: i % 2 === 0 ? "contingent on(~에 달려있는) 관용 표현입니다." : "가정법 과거완료 도치 구문(Had + 주어 + p.p)입니다.",
-    tr: i % 2 === 0 ? "그 제안은 이사회의 최종 승인에 달려 있었습니다." : "CEO가 그 문제를 알았더라면 더 일찍 조치를 취했을 것입니다."
-  });
-}
+고급: [
+  {id:3001, type:"고급어휘", stem:"The board of directors ------- a new policy to streamline operations.", options:{A:"ratified",B:"ratified",C:"retaliated",D:"revitalized"}, answer:"A", exp:"ratify: '공식적으로 승인/비준하다'는 뜻입니다. 이사회가 정책을 공식 승인하는 맥락에 적합합니다.", tr:"이사회는 운영을 간소화하기 위한 새로운 정책을 공식 승인했습니다."},
+  {id:3002, type:"고급구문", stem:"------- had the CEO announced the merger than the stock price surged.", options:{A:"No sooner",B:"Hardly",C:"Scarcely",D:"Barely"}, answer:"A", exp:"No sooner ... than ~: '~하자마자 ~하다'는 부정 도치 구문입니다.", tr:"CEO가 합병을 발표하자마자 주가가 급등했습니다."},
+  {id:3003, type:"고급어휘", stem:"The contract stipulates that all disputes will be ------- through arbitration.", options:{A:"resolved",B:"revised",C:"reversed",D:"restrained"}, answer:"A", exp:"resolve through arbitration: '중재를 통해 해결하다'는 법률/비즈니스 표현입니다.", tr:"계약서는 모든 분쟁이 중재를 통해 해결될 것임을 명시합니다."},
+  {id:3004, type:"품사", stem:"The ------- of the new regulation was met with widespread concern.", options:{A:"implement",B:"implementation",C:"implemented",D:"implementing"}, answer:"B", exp:"관사 The 뒤 주어 자리이므로 명사 implementation(시행)이 정답입니다.", tr:"새 규정의 시행은 광범위한 우려를 불러일으켰습니다."},
+  {id:3005, type:"가정법", stem:"------- the company known about the risks, it would have reconsidered the investment.", options:{A:"If",B:"Had",C:"Should",D:"Were"}, answer:"B", exp:"가정법 과거완료 도치 구문: Had + 주어 + p.p = If + 주어 + had + p.p.", tr:"회사가 위험을 알았더라면 투자를 재고했을 것입니다."},
+  {id:3006, type:"고급어휘", stem:"The initiative was ------- designed to address the widening income gap.", options:{A:"explicitly",B:"exclusively",C:"expeditiously",D:"extensively"}, answer:"A", exp:"explicitly: '명시적으로, 분명히'. 소득 격차를 다루기 위해 '명시적으로 설계된'이 문맥에 적합합니다.", tr:"그 이니셔티브는 벌어지는 소득 격차를 해소하기 위해 명시적으로 설계되었습니다."},
+  {id:3007, type:"관용표현", stem:"The new policy is ------- with the company's long-term strategy.", options:{A:"consistent",B:"contingent",C:"concurrent",D:"conducive"}, answer:"A", exp:"be consistent with: '~와 일관성 있다, ~와 부합한다'는 관용 표현입니다.", tr:"새로운 정책은 회사의 장기 전략과 일관성이 있습니다."},
+  {id:3008, type:"접속사", stem:"The project was completed successfully, ------- some team members raised concerns early on.", options:{A:"because",B:"notwithstanding that",C:"so that",D:"now that"}, answer:"B", exp:"notwithstanding that: '~에도 불구하고'라는 격식체 표현입니다.", tr:"일부 팀원이 초기에 우려를 제기했음에도 불구하고 프로젝트는 성공적으로 완료되었습니다."},
+  {id:3009, type:"고급어휘", stem:"The board expressed its ------- support for the new CEO's vision.", options:{A:"wholehearted",B:"half-hearted",C:"open-hearted",D:"lighthearted"}, answer:"A", exp:"wholehearted support: '전폭적인 지지'라는 표현입니다.", tr:"이사회는 새 CEO의 비전에 대한 전폭적인 지지를 표명했습니다."},
+  {id:3010, type:"품사", stem:"The ------- to the previous contract was signed by both parties.", options:{A:"addendum",B:"addition",C:"address",D:"adopt"}, answer:"A", exp:"addendum: '(계약서의) 부록, 추가 조항'이라는 법률 용어입니다.", tr:"이전 계약의 추가 조항은 양측에 의해 서명되었습니다."},
+  {id:3011, type:"고급어휘", stem:"The company is seeking to ------- its market share in Southeast Asia.", options:{A:"consolidate",B:"condense",C:"confiscate",D:"concede"}, answer:"A", exp:"consolidate market share: '시장 점유율을 공고히 하다'는 비즈니스 표현입니다.", tr:"회사는 동남아시아에서 시장 점유율을 공고히 하려 하고 있습니다."},
+  {id:3012, type:"가정법", stem:"The company would have expanded ------- the economic crisis not intervened.", options:{A:"if",B:"had",C:"were",D:"unless"}, answer:"B", exp:"Would have + p.p가 있으므로 가정법 과거완료 도치 구문으로 had가 정답입니다.", tr:"경제 위기가 없었더라면 회사는 확장되었을 것입니다."},
+  {id:3013, type:"관용표현", stem:"The merger is ------- to be finalized by the end of the fiscal year.", options:{A:"anticipated",B:"expected",C:"projected",D:"scheduled"}, answer:"B", exp:"be expected to: '~할 것으로 예상된다'는 표현입니다. 다른 선택지도 유사하지만 expected가 가장 중립적이고 적합합니다.", tr:"합병은 회계 연도 말까지 마무리될 것으로 예상됩니다."},
+  {id:3014, type:"품사", stem:"A ------- clause in the contract allows either party to terminate early.", options:{A:"terminate",B:"termination",C:"terminating",D:"terminative"}, answer:"B", exp:"명사를 수식하는 자리이므로 명사형 termination이 관형어로 쓰입니다. termination clause: '계약 해지 조항'.", tr:"계약의 해지 조항은 어느 쪽이든 조기 종료를 허용합니다."},
+  {id:3015, type:"고급어휘", stem:"The CEO's remarks were ------- as a sign of the company's intent to expand.", options:{A:"interpreted",B:"intervened",C:"intersected",D:"interacted"}, answer:"A", exp:"be interpreted as: '~로 해석되다'는 수동 표현입니다.", tr:"CEO의 발언은 회사의 확장 의지의 신호로 해석되었습니다."},
+  {id:3016, type:"고급구문", stem:"Not only did the company ------- costs, but it also improved quality.", options:{A:"reduces",B:"reduce",C:"reduced",D:"reducing"}, answer:"B", exp:"Not only did + 주어 → 조동사 도치 구문에서 동사 원형이 옵니다.", tr:"회사는 비용을 줄였을 뿐만 아니라 품질도 향상시켰습니다."},
+  {id:3017, type:"관용표현", stem:"The board is ------- on whether to proceed with the acquisition.", options:{A:"on the fence",B:"in the dark",C:"at odds",D:"up to date"}, answer:"A", exp:"on the fence: '결정을 못 내리다, 어느 쪽도 선택하지 못하다'는 관용 표현입니다.", tr:"이사회는 인수를 진행할지 여부에 대해 결정을 내리지 못하고 있습니다."},
+  {id:3018, type:"고급어휘", stem:"The report was criticized for its ------- use of outdated statistics.", options:{A:"indiscriminate",B:"indisputable",C:"indomitable",D:"inefficient"}, answer:"A", exp:"indiscriminate: '무분별한'. outdated statistics를 '무분별하게' 사용한다는 문맥에 적합합니다.", tr:"보고서는 오래된 통계를 무분별하게 사용했다는 비판을 받았습니다."},
+  {id:3019, type:"품사", stem:"Management must take a ------- approach when dealing with employee concerns.", options:{A:"proactive",B:"proactively",C:"proactiveness",D:"proact"}, answer:"A", exp:"명사(approach)를 수식하는 형용사 proactive(선제적인)가 정답입니다.", tr:"경영진은 직원의 우려를 다룰 때 선제적인 접근 방식을 취해야 합니다."},
+  {id:3020, type:"가정법", stem:"Should any issues ------- , please contact the support team immediately.", options:{A:"arise",B:"arises",C:"arose",D:"arisen"}, answer:"A", exp:"Should + 주어 + 동사원형: 가정법 현재 도치 구문에서 동사는 원형을 씁니다.", tr:"문제가 발생하면 즉시 지원팀에 연락해 주세요."},
+  {id:3021, type:"고급어휘", stem:"The ------- in the supply chain was caused by unforeseen disruptions.", options:{A:"bottleneck",B:"breakdown",C:"backlog",D:"backlash"}, answer:"C", exp:"backlog: '처리되지 못하고 쌓인 일(미처리 적체)'. 공급망에서 처리되지 못한 물량 문맥에 적합합니다.", tr:"공급망의 적체는 예상치 못한 혼란에 의해 발생했습니다."},
+  {id:3022, type:"관용표현", stem:"The new strategy is ------- on a thorough understanding of market trends.", options:{A:"contingent",B:"consistent",C:"compliant",D:"comparable"}, answer:"A", exp:"be contingent on: '~에 달려 있다, ~을 조건으로 하다'는 관용 표현입니다.", tr:"새로운 전략은 시장 동향에 대한 철저한 이해에 달려 있습니다."},
+  {id:3023, type:"고급구문", stem:"Rarely ------- such an efficient team been assembled in such a short time.", options:{A:"has",B:"have",C:"had",D:"having"}, answer:"B", exp:"Rarely가 문두에 오면 도치가 발생합니다. such an efficient team(복수 취급)에 맞게 have가 정답입니다.", tr:"이렇게 효율적인 팀이 이토록 단시간에 꾸려진 경우는 거의 없었습니다."},
+  {id:3024, type:"고급어휘", stem:"The company's -------- to innovation has set it apart from its competitors.", options:{A:"commitment",B:"comment",C:"commencement",D:"commemoration"}, answer:"A", exp:"commitment to: '~에 대한 헌신'이라는 표현입니다.", tr:"혁신에 대한 회사의 헌신이 경쟁사들과 차별화되는 요인이었습니다."},
+  {id:3025, type:"품사", stem:"The negotiations were described as ------- productive.", options:{A:"exception",B:"exceptional",C:"exceptionally",D:"except"}, answer:"C", exp:"형용사(productive)를 수식하는 부사 exceptionally(매우, 예외적으로)가 정답입니다.", tr:"협상은 매우 생산적인 것으로 묘사되었습니다."},
+  {id:3026, type:"고급어휘", stem:"The firm has ------- its position as the market leader in the region.", options:{A:"cemented",B:"sentenced",C:"detached",D:"fractured"}, answer:"A", exp:"cement one's position: '지위를 굳히다/공고히 하다'는 표현입니다.", tr:"그 기업은 해당 지역에서 시장 선두 주자로서의 위치를 공고히 했습니다."},
+  {id:3027, type:"관용표현", stem:"The proposal fell ------- of the investors' expectations.", options:{A:"far short",B:"far ahead",C:"short far",D:"ahead short"}, answer:"A", exp:"fall far short of: '~에 훨씬 못 미치다'는 관용 표현입니다.", tr:"그 제안은 투자자들의 기대에 훨씬 못 미쳤습니다."},
+  {id:3028, type:"고급어휘", stem:"The new regulations are expected to ------- foreign investment.", options:{A:"deter",B:"detect",C:"detain",D:"detach"}, answer:"A", exp:"deter: '저지하다, 단념시키다'. 규정이 외국인 투자를 저지하는 문맥에 적합합니다.", tr:"새로운 규정은 외국인 투자를 저지할 것으로 예상됩니다."},
+  {id:3029, type:"가정법", stem:"Were the funds available, the company ------- expand its research facility.", options:{A:"will",B:"would",C:"should",D:"might be"}, answer:"B", exp:"Were + 주어 ~가정법 과거 도치 구문에서 주절에는 would + 동사원형이 옵니다.", tr:"자금이 있다면 회사는 연구 시설을 확장할 텐데요."},
+  {id:3030, type:"품사", stem:"The CEO's ------- of the strategic plan reassured the shareholders.", options:{A:"endorse",B:"endorsement",C:"endorsed",D:"endorsing"}, answer:"B", exp:"관사 The 뒤 주어 자리이므로 명사 endorsement(지지, 승인)가 정답입니다.", tr:"CEO의 전략적 계획 지지는 주주들을 안심시켰습니다."},
+  {id:3031, type:"고급어휘", stem:"The team was tasked with ------- the feasibility of the proposed expansion.", options:{A:"assessing",B:"accessing",C:"ascending",D:"accruing"}, answer:"A", exp:"assess the feasibility: '실현 가능성을 평가하다'는 표현입니다.", tr:"팀은 제안된 확장의 실현 가능성을 평가하는 임무를 맡았습니다."},
+  {id:3032, type:"고급구문", stem:"Only by cutting overhead costs ------- the company hope to remain competitive.", options:{A:"can",B:"did",C:"has",D:"would"}, answer:"A", exp:"Only by ... 구문이 문두에 오면 주절에서 조동사 도치가 일어납니다. can the company: 현재 맥락에 적합합니다.", tr:"간접비를 절감해야만 회사는 경쟁력을 유지할 수 있습니다."},
+  {id:3033, type:"관용표현", stem:"The investment paid ------- within two years of the initial outlay.", options:{A:"off",B:"out",C:"up",D:"in"}, answer:"A", exp:"pay off: '(투자 등이) 성과를 거두다, 보상을 받다'는 관용 표현입니다.", tr:"그 투자는 초기 비용 지출 후 2년 이내에 성과를 거두었습니다."},
+  {id:3034, type:"고급어휘", stem:"The merger was seen as ------- given both companies' financial struggles.", options:{A:"inevitable",B:"inaccessible",C:"inaccurate",D:"inadequate"}, answer:"A", exp:"inevitable: '불가피한'. 두 회사 모두 재정적 어려움이 있어 합병이 불가피한 상황입니다.", tr:"두 회사 모두 재정적 어려움을 겪고 있어 합병은 불가피한 것으로 여겨졌습니다."},
+  {id:3035, type:"품사", stem:"She negotiated the contract with remarkable ------- and precision.", options:{A:"skilled",B:"skill",C:"skillfully",D:"skillful"}, answer:"B", exp:"with + 명사 자리입니다. skill(기술, 능숙함)이 정답입니다.", tr:"그녀는 놀라운 기술과 정확성으로 계약을 협상했습니다."},
+  {id:3036, type:"고급어휘", stem:"The committee's decision was ------- by the majority of the shareholders.", options:{A:"ratified",B:"regulated",C:"refuted",D:"rejected"}, answer:"A", exp:"ratify: '비준하다, 공식 승인하다'. 주주 다수의 승인을 나타냅니다.", tr:"위원회의 결정은 주주 다수에 의해 비준되었습니다."},
+  {id:3037, type:"가정법", stem:"The project ------- completed on time had additional resources been allocated.", options:{A:"would be",B:"would have been",C:"will be",D:"has been"}, answer:"B", exp:"had + p.p(가정법 과거완료 도치) → 주절에 would have been이 옵니다.", tr:"추가 자원이 배정되었더라면 프로젝트는 제때 완료되었을 것입니다."},
+  {id:3038, type:"관용표현", stem:"The new strategy is ------- to gain widespread support across all departments.", options:{A:"poised",B:"posed",C:"posted",D:"polished"}, answer:"A", exp:"be poised to: '~할 준비가 되어 있다, ~하려는 기세이다'는 표현입니다.", tr:"새 전략은 모든 부서에 걸쳐 광범위한 지지를 얻을 준비가 되어 있습니다."},
+  {id:3039, type:"고급어휘", stem:"The company has taken ------- steps to mitigate the impact of the global crisis.", options:{A:"proactive",B:"productive",C:"protective",D:"provocative"}, answer:"A", exp:"proactive steps: '선제적 조치'라는 표현입니다.", tr:"회사는 글로벌 위기의 영향을 완화하기 위해 선제적 조치를 취했습니다."},
+  {id:3040, type:"품사", stem:"The board is seeking a candidate with ------- leadership qualities.", options:{A:"exemplary",B:"example",C:"exemplify",D:"exemplified"}, answer:"A", exp:"명사(leadership qualities)를 수식하는 형용사 exemplary(모범적인)가 정답입니다.", tr:"이사회는 모범적인 리더십 자질을 갖춘 후보를 찾고 있습니다."},
+  {id:3041, type:"고급어휘", stem:"The analyst's report provided a ------- examination of the firm's financial position.", options:{A:"comprehensive",B:"comprehensible",C:"comprehending",D:"compressed"}, answer:"A", exp:"comprehensive: '포괄적인, 철저한'. 재무 상황을 철저히 검토한다는 맥락에 적합합니다.", tr:"애널리스트의 보고서는 회사의 재무 상황에 대한 포괄적인 검토를 제공했습니다."},
+  {id:3042, type:"가정법", stem:"Had the management listened, the crisis ------- averted.", options:{A:"could be",B:"can be",C:"could have been",D:"would be"}, answer:"C", exp:"Had + p.p(가정법 과거완료) → 주절에 could have been이 옵니다.", tr:"경영진이 귀를 기울였더라면 위기는 피할 수 있었을 것입니다."},
+  {id:3043, type:"관용표현", stem:"The acquisition is ------- to be a game changer for the industry.", options:{A:"deemed",B:"dreamed",C:"doomed",D:"drained"}, answer:"A", exp:"be deemed to be: '~로 여겨지다'는 표현입니다.", tr:"그 인수는 업계의 판도를 바꿀 것으로 여겨집니다."},
+  {id:3044, type:"고급어휘", stem:"The executive team reached a ------- on the key strategic issues.", options:{A:"consensus",B:"concession",C:"contention",D:"conception"}, answer:"A", exp:"reach a consensus: '합의에 이르다'는 관용 표현입니다.", tr:"경영진 팀은 주요 전략적 사안에 대해 합의에 이르렀습니다."},
+  {id:3045, type:"품사", stem:"The findings of the study were ------- significant for the sector.", options:{A:"statistic",B:"statistical",C:"statistically",D:"statistics"}, answer:"C", exp:"형용사(significant)를 수식하는 부사 statistically(통계적으로)가 정답입니다.", tr:"연구 결과는 해당 분야에서 통계적으로 유의미했습니다."},
+  {id:3046, type:"고급어휘", stem:"The board has given the CEO ------- authority to restructure the department.", options:{A:"unilateral",B:"universal",C:"unanimous",D:"unique"}, answer:"A", exp:"unilateral authority: '일방적 권한, 단독 결정권'이라는 표현입니다.", tr:"이사회는 CEO에게 부서를 재편할 단독 권한을 부여했습니다."},
+  {id:3047, type:"관용표현", stem:"The new initiative will be ------- out over the next three years.", options:{A:"phased",B:"faced",C:"traced",D:"placed"}, answer:"A", exp:"phase out: '단계적으로 시행하다/폐지하다'. 여기서는 phase out → 단계적으로 시행의 맥락입니다.", tr:"새로운 이니셔티브는 향후 3년에 걸쳐 단계적으로 시행될 것입니다."},
+  {id:3048, type:"고급어휘", stem:"The company's aggressive expansion has raised ------- concerns among regulators.", options:{A:"legitimate",B:"legible",C:"lethargic",D:"lenient"}, answer:"A", exp:"legitimate concerns: '정당한 우려'라는 표현입니다.", tr:"회사의 공격적인 확장은 규제 기관들 사이에서 정당한 우려를 불러일으켰습니다."},
+  {id:3049, type:"가정법", stem:"The report suggests that, ------- the data been accurate, the conclusion would differ.", options:{A:"if",B:"had",C:"were",D:"unless"}, answer:"B", exp:"가정법 과거완료 도치: had the data been accurate = if the data had been accurate.", tr:"보고서는 데이터가 정확했더라면 결론이 달라졌을 것이라고 제안합니다."},
+  {id:3050, type:"품사", stem:"The proposed ------- to the existing policy met with significant opposition.", options:{A:"amend",B:"amended",C:"amendment",D:"amending"}, answer:"C", exp:"관사 The 뒤 주어 자리이므로 명사 amendment(수정안)가 정답입니다.", tr:"기존 정책에 대한 제안된 수정안은 상당한 반대에 부딪혔습니다."},
+]
 
-// 나머지 문항들은 실제 데이터로 채우거나 반복문을 통해 120개까지 확장 가능
-// 여기서는 구조를 위해 각 레벨당 40개씩 총 120개의 Part 5를 확보했습니다.
+}; // end PART5_POOL
 
+// ================================================================
+// PART 6 데이터 (초급 5세트 / 중급 5세트 / 고급 5세트)
+// ================================================================
 const PART6_POOL = {
-  초급: [],
-  중급: [],
-  고급: []
-};
 
-// Part 6는 세트당 4문제이므로 30문항(약 8세트) 확보
-const p6_templates = [
-  {type:"이메일", title:"업무 협조 요청"},
-  {type:"공고", title:"신규 사원 모집"},
-  {type:"메모", title:"사무실 이전 안내"},
-  {type:"기사", title:"지역 경제 전망"}
-];
-
-["초급", "중급", "고급"].forEach((diff, dIdx) => {
-  for(let s=1; s<=3; s++) { // 레벨당 3세트 (총 9세트 x 4문제 = 36문제)
-    let set = {
-      ptype: p6_templates[s%4].type,
-      title: p6_templates[s%4].title,
-      passage: `To: All employees\nFrom: HR Department\n\nWe are excited to [1] that the annual company picnic will take place on Saturday. This event is a great opportunity to [2] with your colleagues. Please [3] your attendance by Wednesday. [4] We look forward to seeing everyone there!`,
-      questions: [
-        {id: 4000+dIdx*100+s*10+1, blank:1, type:"어휘", options:{A:"announce", B:"ignore", C:"cancel", D:"forget"}, answer:"A", exp:"공지하는 상황이므로 announce가 적절함", gp:"announce that"},
-        {id: 4000+dIdx*100+s*10+2, blank:2, type:"어휘", options:{A:"compete", B:"socialize", C:"argue", D:"work"}, answer:"B", exp:"동료와 어울리는 상황이므로 socialize가 적절함", gp:"socialize with"},
-        {id: 4000+dIdx*100+s*10+3, blank:3, type:"문법", options:{A:"confirm", B:"confirms", C:"confirmed", D:"confirming"}, answer:"A", exp:"명령문 형태의 동사 원형이 필요함", gp:"Please + 동사원형"},
-        {id: 4000+dIdx*100+s*10+4, blank:4, type:"문장삽입", options:{A:"Food and drinks will be provided.", B:"The office will be open as usual.", C:"The meeting is postponed.", D:"It might rain tomorrow."}, answer:"A", exp:"피크닉 관련 추가 정보로 음식 제공 내용이 가장 자연스러움", gp:"문장 맥락 파악"}
-      ]
-    };
-    PART6_POOL[diff].push(set);
+초급: [
+  // 초급 세트 1
+  {
+    ptype:"이메일", title:"업무 시간 변경 공지",
+    passage:`Dear Staff,\n\nWe would like to [1] you that our office hours will change starting next Monday. The new hours will be from 8:30 a.m. to 5:30 p.m. All employees should [2] their schedules accordingly. If you have any questions, please [3] us at ext. 204. [4] We apologize for any inconvenience.`,
+    questions:[
+      {id:4001, blank:1, type:"어휘", options:{A:"inform",B:"ignore",C:"inspect",D:"install"}, answer:"A", exp:"inform ~ that: '~에게 ~를 알리다'는 표현입니다.", gp:"inform + 목적어 + that", vocab:"inform 알리다 / ignore 무시하다 / inspect 검사하다", tr:"저희는 다음 주 월요일부터 사무실 근무 시간이 변경됨을 알려드립니다."},
+      {id:4002, blank:2, type:"어휘", options:{A:"adjust",B:"argue",C:"avoid",D:"attempt"}, answer:"A", exp:"adjust one's schedule: '일정을 조정하다'는 표현입니다.", gp:"adjust ~ accordingly", vocab:"adjust 조정하다 / argue 주장하다 / avoid 피하다", tr:"모든 직원들은 그에 맞게 일정을 조정해야 합니다."},
+      {id:4003, blank:3, type:"어휘", options:{A:"contact",B:"contract",C:"count",D:"connect"}, answer:"A", exp:"문의 방법을 안내하는 문맥에서 contact(연락하다)가 적절합니다.", gp:"contact + 대상", vocab:"contact 연락하다 / contract 계약하다 / count 세다", tr:"질문이 있으시면 내선 204번으로 연락해 주세요."},
+      {id:4004, blank:4, type:"문장삽입", options:{A:"Thank you for your understanding.",B:"The office will be closed permanently.",C:"Please bring your own lunch.",D:"New employees are not affected."}, answer:"A", exp:"공지 마무리 문장으로 양해를 구하는 내용이 가장 자연스럽습니다.", gp:"문단 마무리 문장", vocab:"understanding 이해, 양해 / inconvenience 불편함", tr:"양해해 주셔서 감사합니다."}
+    ]
+  },
+  // 초급 세트 2
+  {
+    ptype:"공고", title:"신입 직원 환영 행사",
+    passage:`To: All Staff\nFrom: HR Department\n\nWe are [1] to welcome five new team members this Monday. Please join us for a welcome lunch in the main cafeteria at noon. Light refreshments will be [2] . This is a great opportunity to [3] with your new colleagues. [4] We look forward to seeing you there.`,
+    questions:[
+      {id:4005, blank:1, type:"어휘", options:{A:"pleased",B:"pleasing",C:"pleasure",D:"please"}, answer:"A", exp:"be pleased to: '~하게 되어 기쁘다'는 표현입니다. 주어(We)가 감정을 느끼는 주체이므로 pleased가 정답입니다.", gp:"be pleased to + 동사원형", vocab:"pleased 기쁜 / pleasing 기분 좋은(→ 사물 주어)", tr:"저희는 이번 주 월요일에 다섯 명의 새 팀원을 환영하게 되어 기쁩니다."},
+      {id:4006, blank:2, type:"어휘", options:{A:"provided",B:"provoked",C:"proposed",D:"promoted"}, answer:"A", exp:"refreshments will be provided: '다과가 제공될 것이다'는 수동 표현입니다.", gp:"be provided", vocab:"refreshments 다과, 가벼운 음식 / provided 제공된", tr:"가벼운 다과가 제공될 것입니다."},
+      {id:4007, blank:3, type:"어휘", options:{A:"compete",B:"network",C:"argue",D:"resign"}, answer:"B", exp:"동료들과 어울리는 기회를 나타내는 network(교류하다)가 적절합니다.", gp:"network with colleagues", vocab:"network 교류하다 / compete 경쟁하다 / resign 사직하다", tr:"이것은 새 동료들과 교류할 좋은 기회입니다."},
+      {id:4008, blank:4, type:"문장삽입", options:{A:"Attendance is optional.",B:"The event is mandatory for all managers.",C:"Please RSVP by Friday noon.",D:"Dress code is casual."}, answer:"C", exp:"행사 참석 여부를 알려달라는 RSVP 요청이 공고 마무리에 자연스럽습니다.", gp:"행사 공지 마무리", vocab:"RSVP (프랑스어) 참석 여부를 알려주세요", tr:"금요일 정오까지 참석 여부를 알려주세요."}
+    ]
+  },
+  // 초급 세트 3
+  {
+    ptype:"메모", title:"사무용품 주문 절차",
+    passage:`To: All Employees\nFrom: Office Manager\n\nPlease note that the procedure for ordering office supplies has [1] . From now on, all requests must be [2] to your department head first. Orders will be [3] on the first and third Monday of each month. [4] Please plan ahead to avoid any delays.`,
+    questions:[
+      {id:4009, blank:1, type:"어휘", options:{A:"changed",B:"change",C:"changing",D:"to change"}, answer:"A", exp:"has + 과거분사(changed): 현재완료 수동 표현으로 절차가 '변경되었다'는 의미입니다.", gp:"현재완료 has + p.p", vocab:"procedure 절차 / order 주문하다 / supply 비품, 공급품", tr:"사무용품을 주문하는 절차가 변경되었습니다."},
+      {id:4010, blank:2, type:"어휘", options:{A:"submitted",B:"submitting",C:"submit",D:"submission"}, answer:"A", exp:"must be + 과거분사(submitted): 수동태 의무 표현입니다.", gp:"must be submitted", vocab:"submit 제출하다 / department head 부서장", tr:"앞으로는 모든 요청이 먼저 부서장에게 제출되어야 합니다."},
+      {id:4011, blank:3, type:"어휘", options:{A:"placed",B:"placing",C:"place",D:"places"}, answer:"A", exp:"be placed: 수동태로 '(주문이) 접수된다'는 의미입니다.", gp:"orders will be placed", vocab:"place an order 주문을 하다 / alternate 격주의, 번갈아 가는", tr:"주문은 매월 첫째·셋째 월요일에 접수될 것입니다."},
+      {id:4012, blank:4, type:"문장삽입", options:{A:"Late requests will not be accepted.",B:"All supplies are free of charge.",C:"You may order any item you like.",D:"The manager will visit each department."}, answer:"A", exp:"'미리 계획하라'는 앞 문장과 연결되는 '늦은 요청은 받지 않는다'가 자연스럽습니다.", gp:"경고/안내 문장", vocab:"late 늦은 / accepted 수락된 / delays 지연", tr:"늦게 접수된 요청은 받아들여지지 않습니다."}
+    ]
+  },
+  // 초급 세트 4
+  {
+    ptype:"이메일", title:"회의 일정 확인",
+    passage:`Dear Mr. Kim,\n\nI am writing to [1] our meeting scheduled for next Thursday at 2 p.m. The meeting will be held [2] the conference room on the fourth floor. Please bring all relevant documents with you. [3] If you cannot attend, please let me know as soon as possible. [4]`,
+    questions:[
+      {id:4013, blank:1, type:"어휘", options:{A:"confirm",B:"cancel",C:"contest",D:"complete"}, answer:"A", exp:"confirm a meeting: '회의를 확인하다'는 표현입니다.", gp:"confirm the meeting", vocab:"confirm 확인하다 / cancel 취소하다 / complete 완료하다", tr:"저는 다음 주 목요일 오후 2시로 예정된 우리 회의를 확인하기 위해 이 글을 씁니다."},
+      {id:4014, blank:2, type:"전치사", options:{A:"at",B:"in",C:"on",D:"by"}, answer:"B", exp:"closed space(conference room) 앞에는 전치사 in을 씁니다.", gp:"in the conference room", vocab:"conference room 회의실 / relevant 관련된", tr:"회의는 4층 회의실에서 열릴 예정입니다."},
+      {id:4015, blank:3, type:"어휘", options:{A:"The agenda will be sent in advance.",B:"Please order lunch for the group.",C:"The meeting will last three days.",D:"All staff must attend every meeting."}, answer:"A", exp:"'관련 서류를 가져오라'는 앞 내용 뒤에 안건을 미리 보내주겠다는 내용이 자연스럽습니다.", gp:"문장 흐름 파악", vocab:"agenda 안건 / in advance 미리, 사전에", tr:"안건은 미리 전송될 예정입니다."},
+      {id:4016, blank:4, type:"문장삽입", options:{A:"I look forward to seeing you.",B:"Please do not reply to this email.",C:"The meeting is open to the public.",D:"Feel free to bring guests."}, answer:"A", exp:"이메일 마무리 표현으로 'I look forward to seeing you.'가 가장 자연스럽습니다.", gp:"이메일 마무리 표현", vocab:"look forward to + 명사/동명사: ~을 기대하다", tr:"만나 뵙기를 기대합니다."}
+    ]
+  },
+  // 초급 세트 5
+  {
+    ptype:"공고", title:"주차 안내",
+    passage:`Notice to All Staff:\n\nDue to construction work, the main parking lot will be [1] from Monday to Wednesday next week. During this period, employees are asked to use the temporary parking area [2] the east side of the building. Parking passes [3] required to enter the temporary area. [4] We appreciate your cooperation during this time.`,
+    questions:[
+      {id:4017, blank:1, type:"어휘", options:{A:"unavailable",B:"unforgettable",C:"unnecessary",D:"unacceptable"}, answer:"A", exp:"공사로 인해 주차장이 '이용 불가'한 상황이므로 unavailable이 정답입니다.", gp:"unavailable ~ due to", vocab:"unavailable 이용 불가한 / due to ~로 인해 / construction 공사", tr:"공사로 인해 주 주차장은 다음 주 월요일부터 수요일까지 이용이 불가합니다."},
+      {id:4018, blank:2, type:"전치사", options:{A:"at",B:"in",C:"on",D:"under"}, answer:"C", exp:"on the east side: '동쪽 편에'라는 표현입니다.", gp:"on the + 방향 + side", vocab:"temporary 임시의 / east side 동쪽 편", tr:"이 기간 동안 직원들은 건물 동쪽의 임시 주차 구역을 이용해 주시기 바랍니다."},
+      {id:4019, blank:3, type:"동사형태", options:{A:"are",B:"were",C:"is",D:"be"}, answer:"A", exp:"Parking passes(복수 주어)에 맞게 are가 정답입니다.", gp:"주어-동사 수 일치", vocab:"parking pass 주차 허가증 / required 필요한", tr:"임시 구역에 진입하려면 주차 허가증이 필요합니다."},
+      {id:4020, blank:4, type:"문장삽입", options:{A:"Please allow extra time for your commute.",B:"All cars must be registered by email.",C:"The construction will take several years.",D:"Parking is free for all employees."}, answer:"A", exp:"주차 공간 변경으로 출퇴근 시간이 늘어날 수 있으므로 '여유 시간을 확보하라'는 내용이 자연스럽습니다.", gp:"안내 문장 흐름", vocab:"allow extra time 여유 시간을 두다 / commute 출퇴근", tr:"출퇴근 시 여유 시간을 두시기 바랍니다."}
+    ]
   }
-});
+],
 
-// --- 로직 섹션 ---
+중급: [
+  // 중급 세트 1
+  {
+    ptype:"이메일", title:"연간 성과 검토 안내",
+    passage:`Dear Team,\n\nAs we approach the end of the fiscal year, I would like to remind you that annual performance reviews will [1] during the month of December. Each employee is expected to [2] a self-assessment form by November 30. This will allow managers to [3] feedback more effectively. [4] Please do not hesitate to contact HR if you have any questions.`,
+    questions:[
+      {id:4021, blank:1, type:"어휘", options:{A:"take place",B:"take charge",C:"take over",D:"take off"}, answer:"A", exp:"take place: '(행사가) 열리다, 진행되다'는 관용 표현입니다.", gp:"take place = occur/happen", vocab:"take place 열리다 / fiscal year 회계연도 / annual 연간의", tr:"연간 성과 검토는 12월 중에 진행됩니다."},
+      {id:4022, blank:2, type:"어휘", options:{A:"complete",B:"compete",C:"compose",D:"comply"}, answer:"A", exp:"complete a form: '양식을 작성하다'는 표현입니다.", gp:"complete the self-assessment form", vocab:"self-assessment 자기 평가 / submit 제출하다", tr:"각 직원은 11월 30일까지 자기 평가 양식을 작성해야 합니다."},
+      {id:4023, blank:3, type:"어휘", options:{A:"provide",B:"prevent",C:"propose",D:"produce"}, answer:"A", exp:"provide feedback: '피드백을 제공하다'는 표현입니다.", gp:"provide feedback effectively", vocab:"provide 제공하다 / effectively 효과적으로", tr:"이를 통해 관리자들이 보다 효과적으로 피드백을 제공할 수 있습니다."},
+      {id:4024, blank:4, type:"문장삽입", options:{A:"Your cooperation is greatly appreciated.",B:"All reviews will be conducted in writing only.",C:"The company will reward top performers.",D:"Late submissions will automatically receive full marks."}, answer:"A", exp:"공식 이메일 마무리에서 협조를 구하는 표현이 자연스럽습니다.", gp:"이메일 마무리 표현", vocab:"cooperation 협력, 협조 / appreciated 감사히 여기는", tr:"여러분의 협조에 깊이 감사드립니다."}
+    ]
+  },
+  // 중급 세트 2
+  {
+    ptype:"기사", title:"지역 경제 전망",
+    passage:`Local businesses are beginning to [1] after several months of decline. Analysts attribute the recovery to increased consumer spending and lower interest rates. Several new companies have recently [2] operations in the area, creating hundreds of new jobs. The city council has pledged to [3] investment by offering tax incentives. [4] Economic experts remain cautiously optimistic about the region's future.`,
+    questions:[
+      {id:4025, blank:1, type:"어휘", options:{A:"recover",B:"retreat",C:"resign",D:"restrict"}, answer:"A", exp:"경기 회복 문맥에서 recover(회복하다)가 정답입니다.", gp:"begin to recover", vocab:"recover 회복하다 / decline 하락 / attribute A to B: A를 B의 원인으로 돌리다", tr:"지역 기업들이 수개월간의 침체 이후 회복하기 시작하고 있습니다."},
+      {id:4026, blank:2, type:"어휘", options:{A:"commenced",B:"committed",C:"completed",D:"compiled"}, answer:"A", exp:"commence operations: '영업을 시작하다'는 표현입니다.", gp:"commenced operations", vocab:"commence 시작하다 / operation 사업 운영", tr:"여러 신규 기업들이 최근 이 지역에서 영업을 시작했습니다."},
+      {id:4027, blank:3, type:"어휘", options:{A:"attract",B:"attack",C:"attempt",D:"attach"}, answer:"A", exp:"attract investment: '투자를 유치하다'는 표현입니다.", gp:"attract investment by offering", vocab:"attract 유치하다 / pledge 약속하다 / tax incentive 세금 혜택", tr:"시의회는 세금 혜택을 제공해 투자를 유치하겠다고 약속했습니다."},
+      {id:4028, blank:4, type:"문장삽입", options:{A:"The unemployment rate has dropped significantly.",B:"All businesses must close by midnight.",C:"The city will raise taxes on foreign companies.",D:"New restaurants are the main driver of growth."}, answer:"A", exp:"경기 회복 맥락에서 실업률이 떨어졌다는 내용이 자연스럽게 연결됩니다.", gp:"기사 흐름 파악", vocab:"unemployment rate 실업률 / significantly 상당히 / cautiously 조심스럽게", tr:"실업률이 크게 떨어졌습니다."}
+    ]
+  },
+  // 중급 세트 3
+  {
+    ptype:"안내문", title:"교육 프로그램 등록",
+    passage:`The Professional Development Department is pleased to [1] its upcoming training program for mid-level managers. The program is designed to [2] participants with the skills needed to lead effectively in today's competitive environment. Sessions will be held [3] alternate Fridays starting in February. Enrollment is limited to 20 participants per session. [4] To register, please visit our intranet portal by January 15.`,
+    questions:[
+      {id:4029, blank:1, type:"어휘", options:{A:"announce",B:"annoy",C:"animate",D:"appoint"}, answer:"A", exp:"announce a program: '프로그램을 발표하다'는 표현입니다.", gp:"pleased to announce", vocab:"announce 발표하다 / upcoming 곧 있을 / mid-level manager 중간 관리자", tr:"전문 개발부는 중간 관리자를 위한 교육 프로그램을 발표하게 되어 기쁩니다."},
+      {id:4030, blank:2, type:"어휘", options:{A:"equip",B:"equal",C:"evaluate",D:"evolve"}, answer:"A", exp:"equip ~ with: '~에게 ~을 갖추게 하다'는 표현입니다.", gp:"equip participants with skills", vocab:"equip A with B: A에게 B를 갖춰주다 / competitive 경쟁적인", tr:"이 프로그램은 참가자들이 경쟁적인 환경에서 효과적으로 이끌 수 있는 기술을 갖추도록 설계되었습니다."},
+      {id:4031, blank:3, type:"전치사", options:{A:"on",B:"in",C:"at",D:"by"}, answer:"A", exp:"'격주 금요일에'를 나타낼 때 on alternate Fridays를 씁니다.", gp:"on alternate Fridays", vocab:"alternate 격주의, 번갈아 하는 / enrollment 등록", tr:"세션은 2월부터 격주 금요일마다 개최됩니다."},
+      {id:4032, blank:4, type:"문장삽입", options:{A:"Early registration is recommended.",B:"The course is open to all employees.",C:"There is no charge for attendance.",D:"Sessions may be cancelled without notice."}, answer:"A", exp:"등록 인원이 제한된 상황에서 '조기 등록을 권장한다'는 내용이 자연스럽습니다.", gp:"안내 흐름 파악", vocab:"early registration 조기 등록 / recommended 권장되는 / intranet 사내망", tr:"조기 등록을 권장합니다."}
+    ]
+  },
+  // 중급 세트 4
+  {
+    ptype:"이메일", title:"공급 계약 갱신",
+    passage:`Dear Mr. Hanson,\n\nI am writing with regard to our supply contract, which is [1] to expire at the end of this month. We would like to [2] the possibility of renewing the agreement for another two years. As a long-standing partner, we believe there are [3] benefits for both parties in continuing this arrangement. [4] We look forward to your response at your earliest convenience.`,
+    questions:[
+      {id:4033, blank:1, type:"어휘", options:{A:"due",B:"done",C:"set",D:"based"}, answer:"A", exp:"be due to + 동사원형: '~할 예정이다, ~하기로 되어 있다'는 표현입니다.", gp:"due to expire", vocab:"due to + 동사원형: ~할 예정인 / expire 만료되다 / supply contract 공급 계약", tr:"저는 이번 달 말 만료될 예정인 공급 계약과 관련하여 글을 씁니다."},
+      {id:4034, blank:2, type:"어휘", options:{A:"explore",B:"explain",C:"express",D:"expand"}, answer:"A", exp:"explore the possibility: '가능성을 모색하다'는 표현입니다.", gp:"explore the possibility of", vocab:"explore 모색하다 / renew 갱신하다 / agreement 계약, 합의", tr:"저희는 계약을 2년 더 갱신할 가능성을 타진하고자 합니다."},
+      {id:4035, blank:3, type:"어휘", options:{A:"mutual",B:"multiple",C:"massive",D:"minimum"}, answer:"A", exp:"mutual benefits: '상호 이익'이라는 표현입니다.", gp:"mutual benefits for both parties", vocab:"mutual 상호 간의 / long-standing 오랫동안 지속된 / arrangement 합의 사항", tr:"오랜 파트너로서 저희는 이 합의를 지속하는 것이 양측 모두에게 상호 이익이 된다고 믿습니다."},
+      {id:4036, blank:4, type:"문장삽입", options:{A:"Please let us know your thoughts by the 20th.",B:"The contract cannot be renewed under any circumstances.",C:"We will accept any terms you propose.",D:"Our legal team will be in touch shortly."}, answer:"A", exp:"이메일 마무리 전에 답변 기한을 명시하는 내용이 자연스럽습니다.", gp:"이메일 마무리 흐름", vocab:"let someone know 알리다 / thoughts 의견, 생각", tr:"20일까지 의견을 알려주세요."}
+    ]
+  },
+  // 중급 세트 5
+  {
+    ptype:"공지", title:"사내 카페테리아 운영 변경",
+    passage:`To: All Staff\nFrom: Facilities Management\n\nPlease be [1] that the cafeteria on the second floor will undergo renovation beginning April 1. During this period, a temporary food service will be [2] in the lobby. The regular menu will not be available, but hot drinks and sandwiches will be [3] at reasonable prices. [4] We thank you for your patience during this time.`,
+    questions:[
+      {id:4037, blank:1, type:"어휘", options:{A:"advised",B:"advising",C:"advisory",D:"advisor"}, answer:"A", exp:"Please be advised that: '~를 알려드립니다'는 공식 공지 표현입니다.", gp:"Please be advised that", vocab:"be advised 알아두다 / undergo 겪다 / renovation 리모델링", tr:"2층 카페테리아가 4월 1일부터 리모델링에 들어감을 알려드립니다."},
+      {id:4038, blank:2, type:"어휘", options:{A:"set up",B:"set out",C:"set aside",D:"set back"}, answer:"A", exp:"set up a service: '서비스를 설치하다/마련하다'는 표현입니다.", gp:"set up in the lobby", vocab:"set up 설치하다 / temporary 임시의 / lobby 로비", tr:"이 기간 동안 로비에 임시 식음료 서비스가 마련됩니다."},
+      {id:4039, blank:3, type:"어휘", options:{A:"offered",B:"ordered",C:"omitted",D:"obtained"}, answer:"A", exp:"be offered at + 가격: '~의 가격에 제공되다'는 표현입니다.", gp:"offered at reasonable prices", vocab:"offered 제공된 / reasonable prices 합리적인 가격", tr:"일반 메뉴는 이용할 수 없지만, 따뜻한 음료와 샌드위치가 합리적인 가격에 제공됩니다."},
+      {id:4040, blank:4, type:"문장삽입", options:{A:"The renovation is expected to be completed by May 15.",B:"The cafeteria will be permanently closed.",C:"All staff must bring their own meals.",D:"Hot food will be available at all times."}, answer:"A", exp:"'인내에 감사한다'는 앞 문장 전에 공사 완료 예정일을 알리는 내용이 자연스럽습니다.", gp:"공지 흐름 파악", vocab:"expected to be completed 완료될 예정인 / patience 인내심", tr:"리모델링은 5월 15일까지 완료될 예정입니다."}
+    ]
+  }
+],
+
+고급: [
+  // 고급 세트 1
+  {
+    ptype:"이메일", title:"인수합병 관련 기밀 협의",
+    passage:`Dear Mr. Walters,\n\nI am writing to follow up on our recent discussion [1] the potential acquisition of Nexen Corp. As outlined in our preliminary agreement, all communications regarding this matter should be treated as [2] until a formal announcement is made. Our legal team is currently [3] a comprehensive review of the financial disclosures. [4] We will schedule a conference call to discuss next steps once the due diligence phase is complete.`,
+    questions:[
+      {id:4041, blank:1, type:"전치사", options:{A:"regarding",B:"regards",C:"regarded",D:"regardless"}, answer:"A", exp:"regarding: '~에 관하여'라는 전치사입니다. follow up on our discussion regarding: '~에 관한 논의를 후속으로 다루다'.", gp:"regarding = concerning", vocab:"follow up on ~을 후속 처리하다 / potential 잠재적인 / acquisition 인수", tr:"저는 넥센사의 잠재적 인수에 관한 최근 논의를 후속으로 처리하기 위해 이 글을 씁니다."},
+      {id:4042, blank:2, type:"어휘", options:{A:"confidential",B:"conditional",C:"consequential",D:"controversial"}, answer:"A", exp:"treat as confidential: '기밀로 취급하다'는 법률/비즈니스 표현입니다.", gp:"treat as confidential", vocab:"confidential 기밀의 / formal announcement 공식 발표", tr:"예비 합의에 명시된 바와 같이, 공식 발표가 있을 때까지 이 사안에 관한 모든 소통은 기밀로 취급되어야 합니다."},
+      {id:4043, blank:3, type:"어휘", options:{A:"conducting",B:"contesting",C:"contracting",D:"conflating"}, answer:"A", exp:"conduct a review: '검토를 수행하다'는 표현입니다.", gp:"conducting a review", vocab:"conduct 수행하다 / comprehensive 포괄적인 / financial disclosure 재무 공시", tr:"저희 법무팀은 현재 재무 공시에 대한 포괄적인 검토를 수행 중입니다."},
+      {id:4044, blank:4, type:"문장삽입", options:{A:"Please ensure that all documentation is in order before our next meeting.",B:"We look forward to finalizing the transaction immediately.",C:"Please share this information with your entire department.",D:"Legal proceedings have already been initiated."}, answer:"A", exp:"실사(due diligence) 단계 이후 다음 단계를 논의하기 전 서류 준비를 요청하는 내용이 문맥에 적합합니다.", gp:"고급 이메일 흐름 파악", vocab:"documentation 서류 / in order 정리된 / due diligence 실사", tr:"다음 회의 전에 모든 서류가 준비되어 있는지 확인해 주십시오."}
+    ]
+  },
+  // 고급 세트 2
+  {
+    ptype:"기사", title:"글로벌 공급망 재편",
+    passage:`The COVID-19 pandemic exposed critical [1] in global supply chains, prompting companies to [2] their sourcing strategies. Many multinational firms have since adopted a more [3] approach, balancing efficiency with resilience by diversifying suppliers across multiple regions. [4] Analysts predict that this shift will continue to shape global trade for the foreseeable future.`,
+    questions:[
+      {id:4045, blank:1, type:"어휘", options:{A:"vulnerabilities",B:"variations",C:"validations",D:"violations"}, answer:"A", exp:"vulnerabilities in supply chains: '공급망의 취약점'이라는 표현입니다.", gp:"expose vulnerabilities", vocab:"vulnerability 취약점 / expose 드러내다 / prompt 촉구하다", tr:"코로나19 팬데믹은 글로벌 공급망의 심각한 취약점을 드러냈습니다."},
+      {id:4046, blank:2, type:"어휘", options:{A:"reassess",B:"reassure",C:"rearrange",D:"reapply"}, answer:"A", exp:"reassess strategies: '전략을 재평가하다'는 표현입니다.", gp:"prompted to reassess", vocab:"reassess 재평가하다 / sourcing strategy 소싱 전략 / multinational 다국적의", tr:"이로 인해 기업들은 소싱 전략을 재평가하게 되었습니다."},
+      {id:4047, blank:3, type:"어휘", options:{A:"diversified",B:"diverted",C:"divided",D:"dissolved"}, answer:"A", exp:"diversified approach: '다각화된 접근 방식'이라는 표현입니다.", gp:"diversified supply base", vocab:"diversified 다각화된 / resilience 회복 탄력성 / efficiency 효율성", tr:"많은 다국적 기업들은 다양한 지역에 걸쳐 공급업체를 다각화하여 효율성과 회복력을 균형 있게 유지하는 방식을 택했습니다."},
+      {id:4048, blank:4, type:"문장삽입", options:{A:"The transition has not been without its challenges, however.",B:"All companies must now rely solely on domestic suppliers.",C:"Trade volumes have returned to pre-pandemic levels.",D:"The government has imposed strict import bans."}, answer:"A", exp:"공급망 재편의 긍정적 면을 서술한 뒤 '그러나 어려움도 없지 않았다'는 역접 문장이 자연스럽습니다.", gp:"기사 흐름 및 역접 표현", vocab:"transition 전환 / foreseeable future 가까운 미래", tr:"그러나 이 전환이 어려움 없이 이루어진 것은 아닙니다."}
+    ]
+  },
+  // 고급 세트 3
+  {
+    ptype:"보고서", title:"분기 재무 성과 요약",
+    passage:`Meridian Financial Group reported a substantial [1] in net income for Q3, [2] a 14% decline in operating expenses and stronger-than-expected revenue from its investment division. The board attributed the favorable results [3] the implementation of cost-cutting measures introduced earlier this year. [4] Despite these gains, management cautioned that ongoing market volatility could impact Q4 results.`,
+    questions:[
+      {id:4049, blank:1, type:"어휘", options:{A:"improvement",B:"involvement",C:"impediment",D:"implication"}, answer:"A", exp:"a substantial improvement in net income: '순이익의 상당한 개선'이라는 표현입니다.", gp:"improvement in + 지표", vocab:"substantial 상당한 / net income 순이익 / operating expenses 운영비", tr:"메리디안 파이낸셜 그룹은 3분기 순이익에서 상당한 개선을 보고했습니다."},
+      {id:4050, blank:2, type:"어휘", options:{A:"attributable to",B:"attributed to",C:"attribute",D:"attributing to"}, answer:"A", exp:"attributable to: '~에 기인하는'이라는 형용사 표현으로 앞 명사를 수식합니다.", gp:"attributable to = due to", vocab:"attributable to ~에 기인하는 / decline 감소 / revenue 수익", tr:"이는 운영비의 14% 감소와 투자 부문의 예상을 웃도는 수익에 기인합니다."},
+      {id:4051, blank:3, type:"전치사", options:{A:"to",B:"for",C:"with",D:"in"}, answer:"A", exp:"attribute A to B: 'A를 B의 덕분으로 돌리다'는 관용 표현입니다.", gp:"attribute ~ to ~", vocab:"attribute A to B: A를 B의 덕분으로 돌리다 / cost-cutting 비용 절감", tr:"이사회는 올해 초 도입된 비용 절감 조치 덕분으로 이번 호실적을 돌렸습니다."},
+      {id:4052, blank:4, type:"문장삽입", options:{A:"Shareholders have expressed confidence in the group's strategic direction.",B:"All dividends have been suspended indefinitely.",C:"The company plans to lay off 20% of its workforce.",D:"The investment division will be spun off next year."}, answer:"A", exp:"긍정적 분기 실적 이후 주주들이 신뢰를 표명했다는 내용이 자연스럽게 이어집니다.", gp:"보고서 흐름 파악", vocab:"shareholder 주주 / strategic direction 전략 방향 / volatility 변동성", tr:"주주들은 그룹의 전략적 방향에 신뢰를 표명했습니다."}
+    ]
+  },
+  // 고급 세트 4
+  {
+    ptype:"안내문", title:"기업 지배구조 개혁 공지",
+    passage:`In response to growing calls for greater corporate accountability, the board of Vantage Holdings has [1] a comprehensive overhaul of its governance framework. Under the revised structure, independent directors will [2] the majority of board seats, and a newly established ethics committee will [3] all executive compensation decisions. [4] These changes reflect the company's commitment to transparency and long-term stakeholder value.`,
+    questions:[
+      {id:4053, blank:1, type:"어휘", options:{A:"initiated",B:"implicated",C:"instigated",D:"invalidated"}, answer:"A", exp:"initiate an overhaul: '전면 개편을 시작하다'는 표현입니다.", gp:"initiated a comprehensive overhaul", vocab:"initiate 시작하다 / overhaul 전면 개편 / governance 지배구조", tr:"기업 책임 강화 요구에 대응하여 밴티지 홀딩스 이사회는 지배구조 체계의 전면 개편을 시작했습니다."},
+      {id:4054, blank:2, type:"어휘", options:{A:"constitute",B:"contribute",C:"contradict",D:"consolidate"}, answer:"A", exp:"constitute the majority: '다수를 구성하다'는 표현입니다.", gp:"constitute the majority of", vocab:"constitute 구성하다 / independent director 사외이사", tr:"개편된 구조 하에서 사외이사가 이사회 자리의 다수를 차지하게 됩니다."},
+      {id:4055, blank:3, type:"어휘", options:{A:"oversee",B:"overlook",C:"overthrow",D:"overestimate"}, answer:"A", exp:"oversee decisions: '결정을 감독하다'는 표현입니다.", gp:"oversee all ~ decisions", vocab:"oversee 감독하다 / ethics committee 윤리위원회 / executive compensation 임원 보수", tr:"새로 설립된 윤리위원회는 모든 임원 보수 결정을 감독할 것입니다."},
+      {id:4056, blank:4, type:"문장삽입", options:{A:"The reforms will be implemented in phases beginning next quarter.",B:"The current governance structure is widely regarded as exemplary.",C:"All board members have resigned effective immediately.",D:"Shareholders have voted against the proposed changes."}, answer:"A", exp:"개혁 내용을 설명한 뒤 단계별 시행 일정을 안내하는 내용이 자연스럽습니다.", gp:"안내문 흐름 파악", vocab:"in phases 단계적으로 / transparency 투명성 / stakeholder 이해관계자", tr:"개혁은 다음 분기부터 단계적으로 시행됩니다."}
+    ]
+  },
+  // 고급 세트 5
+  {
+    ptype:"이메일", title:"전략적 파트너십 협상",
+    passage:`Dear Ms. Harrington,\n\nFollowing our productive discussion last week, I wanted to [1] our mutual interest in exploring a strategic partnership. After careful [2] , our executive team believes that a co-development agreement would be [3] to both parties and could yield significant synergies in the area of R&D. [4] I would welcome the opportunity to arrange a formal meeting at your earliest convenience to discuss the parameters of a possible agreement.`,
+    questions:[
+      {id:4057, blank:1, type:"어휘", options:{A:"reiterate",B:"relate",C:"reinforce",D:"revive"}, answer:"A", exp:"reiterate: '거듭 강조하다, 재확인하다'. 이전 논의를 재확인하는 문맥에 적합합니다.", gp:"reiterate our mutual interest", vocab:"reiterate 거듭 강조하다 / mutual interest 공동 관심사 / strategic partnership 전략적 파트너십", tr:"지난주의 유익한 논의에 이어, 전략적 파트너십 모색에 대한 우리의 공동 관심사를 다시 한번 확인하고자 합니다."},
+      {id:4058, blank:2, type:"어휘", options:{A:"deliberation",B:"declaration",C:"dedication",D:"delegation"}, answer:"A", exp:"after careful deliberation: '신중한 심의 끝에'라는 격식체 표현입니다.", gp:"after careful deliberation", vocab:"deliberation 심의, 숙고 / executive team 경영진", tr:"신중한 심의 끝에 저희 경영진은 공동 개발 협약이 양측에 상호 이익이 될 것이라 판단합니다."},
+      {id:4059, blank:3, type:"어휘", options:{A:"mutually beneficial",B:"mutually exclusive",C:"mutually agreed",D:"mutually binding"}, answer:"A", exp:"mutually beneficial: '상호 이익이 되는'이라는 표현입니다.", gp:"mutually beneficial to both parties", vocab:"mutually beneficial 상호 이익이 되는 / synergy 시너지 / R&D 연구개발", tr:"공동 개발 협약이 양측에 상호 이익이 되고 R&D 분야에서 상당한 시너지를 창출할 수 있을 것으로 기대됩니다."},
+      {id:4060, blank:4, type:"문장삽입", options:{A:"Please let me know your availability for the week of November 12.",B:"We have already finalized the terms of the agreement.",C:"Our legal team will contact you without further notice.",D:"We are not interested in pursuing this partnership at this time."}, answer:"A", exp:"'정식 회의를 마련하고 싶다'는 앞 문장 뒤에 구체적인 일정을 제안하는 내용이 자연스럽습니다.", gp:"이메일 마무리 흐름", vocab:"availability 가능한 시간 / at your earliest convenience 가능한 빨리", tr:"11월 12일 주의 일정을 알려주시기 바랍니다."}
+    ]
+  }
+]
+
+}; // end PART6_POOL
+
+// ================================================================
+// 로직 섹션
+// ================================================================
 let selectedCnt = 10;
 let part = 5;
 let diffIdx = 0;
@@ -217,14 +485,13 @@ let activeQs = [];
 let userAns = {};
 let userDone = {};
 let wrongQs = [];
-let currentPassageSet = null;
 
 const diffs = ['초급', '중급', '고급'];
 
-function buildCntBtns(max) {
+function buildCntBtns() {
   const wrap = document.getElementById('cnt-btns');
   wrap.innerHTML = '';
-  const counts = (part === 6) ? [4, 8, 12] : [5, 10, 15, 20, 30];
+  const counts = (part === 6) ? [4, 8, 12, 16, 20] : [5, 10, 15, 20, 30];
   if (!counts.includes(selectedCnt)) selectedCnt = counts[0];
 
   counts.forEach(n => {
@@ -256,10 +523,11 @@ function generate() {
   const diff = diffs[diffIdx];
   const area = document.getElementById('result');
   area.innerHTML = '';
-  userAns = {}; userDone = {}; wrongQs = []; currentPassageSet = null;
-  
+  userAns = {}; userDone = {}; wrongQs = [];
+
   document.getElementById('result').style.display = 'none';
   document.getElementById('score-box').style.display = 'none';
+  document.getElementById('score-box').classList.remove('visible');
   document.getElementById('wrong-bar').style.display = 'none';
   document.getElementById('toolbar').classList.remove('show');
 
@@ -267,36 +535,37 @@ function generate() {
     const pool = [...PART5_POOL[diff]];
     pool.sort(() => Math.random() - 0.5);
     activeQs = pool.slice(0, Math.min(selectedCnt, pool.length));
-    
+
     const bar = document.createElement('div'); bar.className = 'r-bar';
     bar.innerHTML = `<span>총 ${activeQs.length}문제</span><div class="badges"><span class="badge">PART 5</span><span class="badge">${diff}</span></div>`;
     area.appendChild(bar);
-    
+
     activeQs.forEach((q, i) => area.appendChild(makeQ5(q, i)));
   } else {
     // Part 6
     const pool = [...PART6_POOL[diff]];
     pool.sort(() => Math.random() - 0.5);
-    const setsNeeded = selectedCnt / 4;
+    const setsPerPage = 4;
+    const setsNeeded = Math.ceil(selectedCnt / setsPerPage);
     const selectedSets = pool.slice(0, Math.min(setsNeeded, pool.length));
     activeQs = [];
-    
+
     selectedSets.forEach((set, sIdx) => {
       const bar = document.createElement('div'); bar.className = 'r-bar';
       bar.innerHTML = `<span>지문 ${sIdx+1}: ${set.ptype}</span><div class="badges"><span class="badge">PART 6</span><span class="badge">${diff}</span></div>`;
       area.appendChild(bar);
-      
+
       const p = document.createElement('div'); p.className = 'passage';
       let pText = set.passage.replace(/\n/g, '<br>');
       set.questions.forEach(q => {
-        pText = pText.replace(`[${q.blank}]`, `<span class="bk">${q.blank}</span>`);
+        pText = pText.replace(`[${q.blank}]`, `<span class="bk">[${q.blank}]</span>`);
       });
-      p.innerHTML = `<div class="p-lbl">📄 ${set.ptype} - ${set.title}</div><div>${pText}</div>`;
+      p.innerHTML = `<div class="p-lbl">📄 ${set.ptype} — ${set.title}</div><div>${pText}</div>`;
       area.appendChild(p);
-      
-      set.questions.forEach((q, i) => {
+
+      set.questions.forEach((q) => {
         activeQs.push(q);
-        area.appendChild(makeQ6(q, i));
+        area.appendChild(makeQ6(q));
       });
     });
   }
@@ -315,7 +584,7 @@ function makeQ5(q, i) {
       <span>${q.options[k]}</span>
     </div>
   `).join('');
-  
+
   d.innerHTML = `
     <div class="qt"><div class="qn" style="background:#1a237e">${i+1}</div><div class="qtag">${q.type}</div></div>
     <div class="qb">
@@ -332,7 +601,7 @@ function makeQ5(q, i) {
   return d;
 }
 
-function makeQ6(q, i) {
+function makeQ6(q) {
   const d = document.createElement('div'); d.className = 'qc';
   const optsHtml = ['A','B','C','D'].map(k => `
     <div class="opt" id="o${q.id}${k}" onclick="pick(${q.id},'${k}','${q.answer}')">
@@ -340,16 +609,20 @@ function makeQ6(q, i) {
       <span>${q.options[k]}</span>
     </div>
   `).join('');
-  
+  const vocabHtml = q.vocab ? `<div class="eko" style="margin-top:8px">📚 단어: ${q.vocab}</div>` : '';
+  const trHtml = q.tr ? `<div class="eko">📝 해석: ${q.tr}</div>` : '';
+
   d.innerHTML = `
     <div class="qt"><div class="qn" style="background:#e65100">#${q.blank}</div><div class="qtag">${q.type}</div></div>
     <div class="qb">
-      <div class="qstem">빈칸 (${q.blank})에 가장 알맞은 표현을 고르세요.</div>
+      <div class="qstem">빈칸 [${q.blank}]에 가장 알맞은 표현을 고르세요.</div>
       <div class="opts">${optsHtml}</div>
       <div class="exp" id="exp${q.id}">
         <div class="ea">✓ 정답: (${q.answer}) ${q.options[q.answer]}</div>
         <div style="font-weight:600; color:#1a237e; margin-bottom:5px">💡 포인트: ${q.gp || '-'}</div>
         <div>${q.exp}</div>
+        ${vocabHtml}
+        ${trHtml}
       </div>
       <button class="ebtn" id="eb${q.id}" onclick="togExp(${q.id})">📖 해설 보기</button>
     </div>
@@ -361,21 +634,21 @@ function pick(qid, sel, ans) {
   if (userDone[qid]) return;
   userAns[qid] = sel;
   userDone[qid] = true;
-  
+
   ['A','B','C','D'].forEach(k => {
     const el = document.getElementById('o' + qid + k);
     if (k === ans) el.classList.add('correct');
     else if (k === sel) el.classList.add('wrong');
   });
-  
+
   document.getElementById('exp' + qid).classList.add('show');
   document.getElementById('eb' + qid).textContent = "📖 해설 닫기";
-  
+
   if (sel !== ans) {
     const qObj = activeQs.find(x => x.id === qid);
     if (qObj) wrongQs.push(qObj);
   }
-  
+
   checkFinish();
 }
 
@@ -383,20 +656,21 @@ function checkFinish() {
   if (Object.keys(userDone).length === activeQs.length) {
     const correct = activeQs.filter(q => userAns[q.id] === q.answer).length;
     const total = activeQs.length;
-    document.getElementById('snum').textContent = `${correct} / ${total}`;
-    
+    document.getElementById('snum').textContent = correct + ' / ' + total;
+
     const pct = (correct / total) * 100;
     let msg = "열심히 학습 중이시군요!";
-    if (pct === 100) msg = "💯 만점입니다! 대단해요!";
+    if (pct === 100) msg = "💯 만점입니다! 완벽해요!";
     else if (pct >= 80) msg = "👏 고득점입니다! 조금만 더 하면 만점이에요!";
     else if (pct < 60) msg = "📕 오답 노트를 통해 복습이 필요합니다.";
-    
+
     document.getElementById('score-msg').textContent = msg;
-    document.getElementById('score-box').style.display = 'block';
+    const sb = document.getElementById('score-box');
+    sb.classList.add('visible');
     document.getElementById('btn-wrong').disabled = (wrongQs.length === 0);
     document.getElementById('btn-pdf').disabled = false;
-    
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+    setTimeout(function(){ window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 150);
   }
 }
 
@@ -418,61 +692,56 @@ function doWrongNote() {
   const currentWrongs = [...wrongQs];
   wrongQs = [];
   activeQs = currentWrongs;
-  
+
   document.getElementById('score-box').style.display = 'none';
+  document.getElementById('score-box').classList.remove('visible');
   document.getElementById('wrong-bar').style.display = 'block';
-  
+
   const bar = document.createElement('div'); bar.className = 'r-bar';
   bar.innerHTML = `<span>틀린 문제 ${activeQs.length}문항</span><span class="badge badge-w">📕 오답 다시풀기</span>`;
   area.appendChild(bar);
-  
+
   activeQs.forEach((q, i) => {
-    if (q.blank) area.appendChild(makeQ6(q, i));
+    if (q.blank) area.appendChild(makeQ6(q));
     else area.appendChild(makeQ5(q, i));
   });
-  
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function savePDF() {
-  // 간단한 HTML 새 창 인쇄 기능
-  const printWindow = window.open('', '_blank');
-  let content = `
-    <html><head><title>TOEIC Part ${part} 학습지</title>
-    <style>
-      body { font-family: sans-serif; padding: 30px; line-height: 1.6; }
-      h1 { color: #1a237e; border-bottom: 2px solid #1a237e; }
-      .q-box { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-      .ans { color: green; font-weight: bold; margin-top: 10px; }
-      .passage { background: #f9f9f9; padding: 15px; border-left: 4px solid #1a237e; margin-bottom: 20px; }
-    </style>
-    </head><body>
-    <h1>TOEIC Part ${part} 학습 결과 리포트</h1>
-    <p>난이도: ${diffs[diffIdx]} | 일시: ${new Date().toLocaleString()}</p>
-    <hr>
-  `;
-  
-  // 지문이 있는 경우 (Part 6) 표시 로직은 생략/간소화하여 문제 위주로 출력
-  activeQs.forEach((q, i) => {
-    content += `
-      <div class="q-box">
-        <p><b>Q${i+1}.</b> ${q.stem || '빈칸 문제'}</p>
-        <p>(A) ${q.options.A} (B) ${q.options.B} (C) ${q.options.C} (D) ${q.options.D}</p>
-        <div class="ans">정답: (${q.answer}) | 선택: (${userAns[q.id] || '미응답'})</div>
-        <p><small>해설: ${q.exp}</small></p>
-      </div>
-    `;
+  let rows = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+  rows += '<tr style="background:#1a237e;color:white"><th style="padding:8px">번호</th><th>문제 유형</th><th>정답</th><th>선택</th><th>결과</th></tr>';
+  activeQs.forEach(function(q, i) {
+    const sel = userAns[q.id] || '-';
+    const ok = sel === q.answer ? '✓' : '✗';
+    const bg = sel === q.answer ? '#e8f5e9' : '#ffebee';
+    rows += '<tr style="background:'+bg+'"><td style="padding:6px;text-align:center">'+(i+1)+'</td><td>'+q.type+'</td><td style="text-align:center;font-weight:700">'+q.answer+'</td><td style="text-align:center">'+sel+'</td><td style="text-align:center;font-weight:800">'+ok+'</td></tr>';
   });
-  
-  content += `</body></html>`;
-  printWindow.document.write(content);
-  printWindow.document.close();
-  printWindow.print();
+  rows += '</table>';
+
+  const correct = activeQs.filter(function(q){ return userAns[q.id] === q.answer; }).length;
+  const modal = document.getElementById('pdf-modal');
+  document.getElementById('pdf-date').textContent = 'TOEIC Part '+part+' | '+diffs[diffIdx]+' | '+new Date().toLocaleString();
+  document.getElementById('pdf-score').textContent = '점수: '+correct+' / '+activeQs.length+' ('+Math.round(correct/activeQs.length*100)+'%)';
+  document.getElementById('pdf-table').innerHTML = rows;
+  modal.style.display = 'flex';
 }
 
 // 초기화
 buildCntBtns();
 </script>
 
+
+<div class="pdf-modal" id="pdf-modal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="pdf-inner">
+    <button class="pdf-close" onclick="document.getElementById('pdf-modal').style.display='none'">✕ 닫기</button>
+    <h2>📄 학습 결과 리포트</h2>
+    <p id="pdf-date"></p>
+    <p id="pdf-score" style="font-weight:700;color:#1a237e;font-size:15px"></p>
+    <div id="pdf-table"></div>
+    <p style="margin-top:16px;font-size:12px;color:#999">※ 스크린샷으로 저장하거나 브라우저 공유 메뉴를 이용하세요.</p>
+  </div>
+</div>
 </body>
 </html>
