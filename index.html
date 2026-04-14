@@ -10,7 +10,7 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 .top { background: #1a237e; color: white; padding: 20px 18px; text-align: center; }
 .top h1 { font-size: 20px; font-weight: 800; }
 .top p { font-size: 12px; opacity: 0.8; margin-top: 5px; }
-.main { max-width: 800px; margin: 0 auto; padding: 20px 15px 100px; }
+.main { max-width: 800px; margin: 0 auto; padding: 20px 15px 160px; }
 .panel { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
 .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
 .grp label { display: block; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 10px; }
@@ -63,7 +63,7 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 .ebtn { border: 1px solid #3949ab; background: white; color: #3949ab; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
 .ebtn:hover { background: #3949ab; color: white; }
 
-.score-box { display: none; background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin: 20px 0; }
+.score-box { display: none; background: white; border-radius: 20px; padding: 30px 30px 40px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin: 20px 0 120px; }
 .score-box.visible { display: block; }
 .score-box.show { display: block; }
 .snum { font-size: 60px; font-weight: 950; color: #1a237e; }
@@ -72,11 +72,22 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 .wrong-bar { display: none; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 12px; padding: 12px 18px; margin-bottom: 15px; font-size: 14px; color: #e65100; font-weight: 700; text-align: center; }
 .wrong-bar.show { display: block; }
 
-.pdf-modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:999; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto; }
-.pdf-inner { background:white; border-radius:16px; padding:24px; width:100%; max-width:700px; margin:auto; }
-.pdf-inner h2 { color:#1a237e; font-size:16px; margin-bottom:6px; }
-.pdf-inner p { font-size:13px; color:#555; margin-bottom:16px; }
-.pdf-close { float:right; background:#1a237e; color:white; border:none; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer; font-size:13px; }
+.pdf-modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.75); z-index:999; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto; }
+.pdf-inner { background:white; border-radius:16px; padding:20px; width:100%; max-width:700px; margin:auto; }
+.pdf-inner h2 { color:#1a237e; font-size:16px; margin-bottom:4px; }
+.pdf-close { float:right; background:#555; color:white; border:none; border-radius:8px; padding:7px 14px; font-weight:700; cursor:pointer; font-size:13px; }
+.pdf-tabs { display:flex; gap:8px; margin:14px 0 16px; }
+.pdf-tab { flex:1; padding:10px; border:2px solid #e0e0e0; border-radius:10px; background:white; font-size:13px; font-weight:700; cursor:pointer; }
+.pdf-tab.on { background:#1a237e; border-color:#1a237e; color:white; }
+.pdf-dl { display:block; width:100%; margin-top:14px; padding:12px; background:#2e7d32; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; }
+.pdf-note { margin-top:10px; font-size:11px; color:#999; text-align:center; }
+
+@media print {
+  body > *:not(#pdf-print-area) { display: none !important; }
+  #pdf-print-area { display: block !important; font-family: sans-serif; padding: 20px; }
+  #pdf-print-area table { width: 100%; border-collapse: collapse; }
+  #pdf-print-area th, #pdf-print-area td { border: 1px solid #ccc; padding: 6px; font-size: 12px; }
+}
 </style>
 </head>
 <body>
@@ -124,7 +135,7 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 <div class="toolbar" id="toolbar">
   <button class="tool-btn tb-retry" onclick="generate()">🔄 다시 풀기</button>
   <button class="tool-btn tb-wrong" id="btn-wrong" onclick="doWrongNote()" disabled>📕 오답노트</button>
-  <button class="tool-btn tb-pdf" id="btn-pdf" onclick="savePDF()" disabled>📄 PDF 저장</button>
+  <button class="tool-btn tb-pdf" id="btn-pdf" onclick="savePDF()">📄 문제지/결과</button>
 </div>
 
 <script>
@@ -668,7 +679,6 @@ function checkFinish() {
     const sb = document.getElementById('score-box');
     sb.classList.add('visible');
     document.getElementById('btn-wrong').disabled = (wrongQs.length === 0);
-    document.getElementById('btn-pdf').disabled = false;
 
     setTimeout(function(){ window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 150);
   }
@@ -709,39 +719,148 @@ function doWrongNote() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function savePDF() {
-  let rows = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
-  rows += '<tr style="background:#1a237e;color:white"><th style="padding:8px">번호</th><th>문제 유형</th><th>정답</th><th>선택</th><th>결과</th></tr>';
-  activeQs.forEach(function(q, i) {
-    const sel = userAns[q.id] || '-';
-    const ok = sel === q.answer ? '✓' : '✗';
-    const bg = sel === q.answer ? '#e8f5e9' : '#ffebee';
-    rows += '<tr style="background:'+bg+'"><td style="padding:6px;text-align:center">'+(i+1)+'</td><td>'+q.type+'</td><td style="text-align:center;font-weight:700">'+q.answer+'</td><td style="text-align:center">'+sel+'</td><td style="text-align:center;font-weight:800">'+ok+'</td></tr>';
-  });
-  rows += '</table>';
+let pdfTab = 'q'; // 'q' = 문제지, 'a' = 해설지
 
+function buildPdfRows(mode) {
+  const answered = activeQs.filter(function(q){ return userAns[q.id]; }).length;
   const correct = activeQs.filter(function(q){ return userAns[q.id] === q.answer; }).length;
+  const total = activeQs.length;
+
+  // ── 문제지 탭: 정답/해설 없이 문제+선택지만
+  if (mode === 'blank') {
+    let html = '<div style="background:#fff8e1;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:#e65100;font-weight:700">📝 문제지 — 정답 없는 버전 (학습/인쇄용)</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html += '<tr style="background:#1a237e;color:white"><th style="padding:8px 6px;text-align:center;width:36px">번호</th><th style="text-align:left;padding:8px 6px">문제 / 선택지</th><th style="padding:8px 6px;text-align:center;width:44px">답안</th></tr>';
+    activeQs.forEach(function(q, i) {
+      const stem = (q.stem || '빈칸 ['+q.blank+'] 문제').replace(/-------/g,'_____');
+      const opts = ['A','B','C','D'].map(function(k){ return '('+k+') '+q.options[k]; }).join('&nbsp;&nbsp; ');
+      html += '<tr style="border-bottom:1px solid #eee"><td style="padding:8px 6px;text-align:center;font-weight:700">'+(i+1)+'</td>'
+        +'<td style="padding:8px 6px"><div style="font-size:13px;margin-bottom:5px">'+stem+'</div>'
+        +'<div style="font-size:11px;color:#555">'+opts+'</div></td>'
+        +'<td style="padding:8px 6px;text-align:center;font-size:20px;color:#ccc;border:1px solid #ddd;background:#fafafa">○</td></tr>';
+    });
+    html += '</table>';
+    return html;
+  }
+
+  // 점수 표시 (결과표/해설지용)
+  let scoreHtml = '';
+  if (answered > 0) {
+    scoreHtml = '<div style="background:#e8eaf6;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:14px;font-weight:700;color:#1a237e">'
+      + '📊 점수: '+correct+' / '+answered+' 풀이 ('+Math.round(correct/answered*100)+'%) &nbsp;|&nbsp; 전체 '+total+'문항</div>';
+  } else {
+    scoreHtml = '<div style="background:#f5f5f5;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:#888">미풀이 상태입니다.</div>';
+  }
+
+  if (mode === 'q') {
+    // 결과표 모드
+    let html = scoreHtml;
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html += '<tr style="background:#1a237e;color:white"><th style="padding:8px 6px;text-align:center">번호</th><th style="text-align:left;padding:8px 6px">문제</th><th style="padding:8px 6px;text-align:center">정답</th><th style="padding:8px 6px;text-align:center">내 선택</th><th style="padding:8px 6px;text-align:center">결과</th></tr>';
+    activeQs.forEach(function(q, i) {
+      const sel = userAns[q.id] || '—';
+      const ok = !userAns[q.id] ? '' : (sel === q.answer ? '<span style="color:green;font-weight:800">✓</span>' : '<span style="color:red;font-weight:800">✗</span>');
+      const bg = !userAns[q.id] ? '' : (sel === q.answer ? 'background:#e8f5e9' : 'background:#ffebee');
+      const stemShort = (q.stem || '빈칸 ['+q.blank+'] 문제').replace(/-------/g,'_____').substring(0,60)+(q.stem && q.stem.length>60?'…':'');
+      html += '<tr style="'+bg+'"><td style="padding:6px;text-align:center;font-weight:700">'+(i+1)+'</td>'
+        +'<td style="padding:6px;font-size:12px">'+stemShort+'</td>'
+        +'<td style="padding:6px;text-align:center;font-weight:800;color:#1a237e">'+q.answer+'</td>'
+        +'<td style="padding:6px;text-align:center">'+sel+'</td>'
+        +'<td style="padding:6px;text-align:center">'+ok+'</td></tr>';
+    });
+    html += '</table>';
+    return html;
+  } else {
+    // 해설지 모드
+    let html = scoreHtml;
+    activeQs.forEach(function(q, i) {
+      const sel = userAns[q.id];
+      const isCorrect = sel === q.answer;
+      const bg = !sel ? '#fafafa' : (isCorrect ? '#e8f5e9' : '#ffebee');
+      const badge = !sel ? '' : (isCorrect ? '<span style="color:green;font-weight:800;font-size:16px">✓</span>' : '<span style="color:red;font-weight:800;font-size:16px">✗</span>');
+      const stemHtml = (q.stem||'빈칸 ['+q.blank+'] 문제').replace(/-------/g,'<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>');
+      const optsHtml = ['A','B','C','D'].map(function(k){
+        const hi = k===q.answer ? 'font-weight:800;color:#1a237e' : (k===sel&&sel!==q.answer?'color:red;text-decoration:line-through':'color:#333');
+        return '<span style="margin-right:12px;'+hi+'">('+k+') '+q.options[k]+'</span>';
+      }).join('');
+      html += '<div style="background:'+bg+';border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1px solid #eee">'
+        +'<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">'
+        +'<span style="background:#1a237e;color:white;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:800;flex-shrink:0">Q'+(i+1)+'</span>'
+        +'<span style="font-size:13px;font-weight:600">['+q.type+']</span>'
+        +(sel?'&nbsp;'+badge:'')
+        +'</div>'
+        +'<div style="font-size:14px;margin-bottom:8px">'+stemHtml+'</div>'
+        +'<div style="font-size:12px;margin-bottom:8px">'+optsHtml+'</div>'
+        +'<div style="background:white;border-radius:8px;padding:8px 10px;font-size:12px;border-left:3px solid #1a237e">'
+        +'<div style="color:#2e7d32;font-weight:700;margin-bottom:3px">✓ 정답: ('+q.answer+') '+q.options[q.answer]+'</div>'
+        +'<div style="color:#444">'+q.exp+'</div>'
+        +(q.vocab?'<div style="color:#555;margin-top:4px">📚 '+q.vocab+'</div>':'')
+        +(q.tr?'<div style="color:#555;margin-top:4px">📝 '+q.tr+'</div>':'')
+        +'</div>'
+        +'</div>';
+    });
+    return html;
+  }
+}
+
+function switchPdfTab(mode) {
+  pdfTab = mode;
+  document.getElementById('pdf-tab-blank').className = 'pdf-tab' + (mode==='blank'?' on':'');
+  document.getElementById('pdf-tab-q').className = 'pdf-tab' + (mode==='q'?' on':'');
+  document.getElementById('pdf-tab-a').className = 'pdf-tab' + (mode==='a'?' on':'');
+  document.getElementById('pdf-table').innerHTML = buildPdfRows(mode);
+}
+
+function savePDF() {
+  if (activeQs.length === 0) return;
+  const answered = activeQs.filter(function(q){ return userAns[q.id]; }).length;
+  // 아무것도 안 풀었으면 문제지 탭, 풀었으면 결과표 탭
+  pdfTab = answered > 0 ? 'q' : 'blank';
   const modal = document.getElementById('pdf-modal');
   document.getElementById('pdf-date').textContent = 'TOEIC Part '+part+' | '+diffs[diffIdx]+' | '+new Date().toLocaleString();
-  document.getElementById('pdf-score').textContent = '점수: '+correct+' / '+activeQs.length+' ('+Math.round(correct/activeQs.length*100)+'%)';
-  document.getElementById('pdf-table').innerHTML = rows;
+  document.getElementById('pdf-tab-blank').className = 'pdf-tab' + (pdfTab==='blank'?' on':'');
+  document.getElementById('pdf-tab-q').className = 'pdf-tab' + (pdfTab==='q'?' on':'');
+  document.getElementById('pdf-tab-a').className = 'pdf-tab';
+  document.getElementById('pdf-table').innerHTML = buildPdfRows(pdfTab);
   modal.style.display = 'flex';
+}
+
+function downloadPdfContent() {
+  const tabName = pdfTab==='blank'?'문제지(답없음)': (pdfTab==='q'?'문제결과표':'전체해설지');
+  const title = 'TOEIC Part '+part+' '+diffs[diffIdx]+' '+tabName;
+  const inner = document.getElementById('pdf-table').innerHTML;
+  // 인쇄용 새 탭 열기 (window.open 대신 data URI 방식)
+  const printDiv = document.getElementById('pdf-print-area');
+  printDiv.innerHTML = '<h2 style="color:#1a237e;border-bottom:2px solid #1a237e;padding-bottom:8px;margin-bottom:12px">'+title+'</h2>'
+    +'<p style="color:#888;font-size:12px;margin-bottom:16px">'+document.getElementById('pdf-date').textContent+'</p>'
+    +inner;
+  // 인쇄 실행
+  document.getElementById('pdf-modal').style.display = 'none';
+  setTimeout(function(){
+    window.print();
+    printDiv.innerHTML = '';
+  }, 200);
 }
 
 // 초기화
 buildCntBtns();
 </script>
 
-
 <div class="pdf-modal" id="pdf-modal" onclick="if(event.target===this)this.style.display='none'">
   <div class="pdf-inner">
     <button class="pdf-close" onclick="document.getElementById('pdf-modal').style.display='none'">✕ 닫기</button>
-    <h2>📄 학습 결과 리포트</h2>
-    <p id="pdf-date"></p>
-    <p id="pdf-score" style="font-weight:700;color:#1a237e;font-size:15px"></p>
+    <h2>📄 학습 리포트</h2>
+    <p id="pdf-date" style="font-size:12px;color:#888;margin-bottom:0"></p>
+    <div class="pdf-tabs">
+      <button id="pdf-tab-blank" class="pdf-tab" onclick="switchPdfTab('blank')">📝 문제지</button>
+      <button id="pdf-tab-q" class="pdf-tab on" onclick="switchPdfTab('q')">📊 문제 결과표</button>
+      <button id="pdf-tab-a" class="pdf-tab" onclick="switchPdfTab('a')">📖 전체 해설지</button>
+    </div>
     <div id="pdf-table"></div>
-    <p style="margin-top:16px;font-size:12px;color:#999">※ 스크린샷으로 저장하거나 브라우저 공유 메뉴를 이용하세요.</p>
+    <button class="pdf-dl" onclick="downloadPdfContent()">🖨️ 인쇄 / PDF 저장</button>
+    <p class="pdf-note">인쇄 창에서 → 대상: PDF로 저장 선택 &nbsp;|&nbsp; 모바일: 공유 → 파일에 저장</p>
   </div>
 </div>
+<div id="pdf-print-area" style="display:none"></div>
 </body>
 </html>
