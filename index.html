@@ -79,15 +79,7 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #
 .pdf-tabs { display:flex; gap:8px; margin:14px 0 16px; }
 .pdf-tab { flex:1; padding:10px; border:2px solid #e0e0e0; border-radius:10px; background:white; font-size:13px; font-weight:700; cursor:pointer; }
 .pdf-tab.on { background:#1a237e; border-color:#1a237e; color:white; }
-.pdf-dl { display:block; width:100%; margin-top:14px; padding:12px; background:#2e7d32; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; }
-.pdf-note { margin-top:10px; font-size:11px; color:#999; text-align:center; }
-
-@media print {
-  body > *:not(#pdf-print-area) { display: none !important; }
-  #pdf-print-area { display: block !important; font-family: sans-serif; padding: 20px; }
-  #pdf-print-area table { width: 100%; border-collapse: collapse; }
-  #pdf-print-area th, #pdf-print-area td { border: 1px solid #ccc; padding: 6px; font-size: 12px; }
-}
+.pdf-note { margin-top:10px; font-size:12px; color:#1a237e; text-align:center; font-weight:700; }
 </style>
 </head>
 <body>
@@ -849,7 +841,7 @@ function buildPdfRows(mode) {
 
   // ── 문제지 탭: 정답/해설 없이 문제+선택지만
   if (mode === 'blank') {
-    let html = '<div style="background:#fff8e1;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:#e65100;font-weight:700">📝 문제지 — 정답 없는 버전 (학습/인쇄용)</div>';
+    let html = '<div style="background:#fff8e1;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:#e65100;font-weight:700">📝 문제지 — 정답 없는 버전 (학습용)</div>';
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
     html += '<tr style="background:#1a237e;color:white"><th style="padding:8px 6px;text-align:center;width:36px">번호</th><th style="text-align:left;padding:8px 6px">문제 / 선택지</th><th style="padding:8px 6px;text-align:center;width:44px">답안</th></tr>';
     activeQs.forEach(function(q, i) {
@@ -946,22 +938,6 @@ function savePDF() {
   modal.style.display = 'flex';
 }
 
-function downloadPdfContent() {
-  const tabName = pdfTab==='blank'?'문제지(답없음)': (pdfTab==='q'?'문제결과표':'전체해설지');
-  const title = 'TOEIC Part '+part+' '+diffs[diffIdx]+' '+tabName;
-  const inner = document.getElementById('pdf-table').innerHTML;
-  const printDiv = document.getElementById('pdf-print-area');
-  printDiv.innerHTML = '<h2 style="color:#1a237e;border-bottom:2px solid #1a237e;padding-bottom:8px;margin-bottom:12px">'+title+'</h2>'
-    +'<p style="color:#888;font-size:12px;margin-bottom:16px">'+document.getElementById('pdf-date').textContent+'</p>'
-    +inner;
-  // 모달(문제지 시트)을 닫지 않는다 — 인쇄가 막힌 환경(토스 앱 웹뷰)에서도
-  // 시트가 화면에 그대로 남아 스크린샷으로 저장할 수 있게.
-  const note = document.getElementById('pdf-note');
-  if (note) note.innerHTML = '🖨️ PC: 인쇄 창에서 <b>PDF로 저장</b> &nbsp;|&nbsp; 📸 모바일·토스앱: <b>이 화면을 스크린샷</b> 하세요';
-  // PC 브라우저에서는 인쇄 창이 뜬다. 웹뷰에서 미지원이어도 위 시트가 남아있어 먹통이 아니다.
-  try { window.print(); } catch (e) {}
-}
-
 // 초기화
 buildCntBtns();
 </script>
@@ -977,10 +953,8 @@ buildCntBtns();
       <button id="pdf-tab-a" class="pdf-tab" onclick="switchPdfTab('a')">📖 전체 해설지</button>
     </div>
     <div id="pdf-table"></div>
-    <button class="pdf-dl" onclick="downloadPdfContent()">🖨️ 인쇄 / 📸 스크린샷 저장</button>
-    <p class="pdf-note" id="pdf-note">🖨️ PC: 인쇄 창에서 <b>PDF로 저장</b> &nbsp;|&nbsp; 📸 모바일·토스앱: <b>이 화면을 스크린샷</b> 하세요</p>
+    <p class="pdf-note" id="pdf-note">📸 이 화면을 <b>스크린샷</b>으로 저장하세요</p>
   </div>
 </div>
-<div id="pdf-print-area" style="display:none"></div>
 </body>
 </html>
