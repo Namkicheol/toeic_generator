@@ -950,17 +950,16 @@ function downloadPdfContent() {
   const tabName = pdfTab==='blank'?'문제지(답없음)': (pdfTab==='q'?'문제결과표':'전체해설지');
   const title = 'TOEIC Part '+part+' '+diffs[diffIdx]+' '+tabName;
   const inner = document.getElementById('pdf-table').innerHTML;
-  // 인쇄용 새 탭 열기 (window.open 대신 data URI 방식)
   const printDiv = document.getElementById('pdf-print-area');
   printDiv.innerHTML = '<h2 style="color:#1a237e;border-bottom:2px solid #1a237e;padding-bottom:8px;margin-bottom:12px">'+title+'</h2>'
     +'<p style="color:#888;font-size:12px;margin-bottom:16px">'+document.getElementById('pdf-date').textContent+'</p>'
     +inner;
-  // 인쇄 실행
-  document.getElementById('pdf-modal').style.display = 'none';
-  setTimeout(function(){
-    window.print();
-    printDiv.innerHTML = '';
-  }, 200);
+  // 모달(문제지 시트)을 닫지 않는다 — 인쇄가 막힌 환경(토스 앱 웹뷰)에서도
+  // 시트가 화면에 그대로 남아 스크린샷으로 저장할 수 있게.
+  const note = document.getElementById('pdf-note');
+  if (note) note.innerHTML = '🖨️ PC: 인쇄 창에서 <b>PDF로 저장</b> &nbsp;|&nbsp; 📸 모바일·토스앱: <b>이 화면을 스크린샷</b> 하세요';
+  // PC 브라우저에서는 인쇄 창이 뜬다. 웹뷰에서 미지원이어도 위 시트가 남아있어 먹통이 아니다.
+  try { window.print(); } catch (e) {}
 }
 
 // 초기화
@@ -978,8 +977,8 @@ buildCntBtns();
       <button id="pdf-tab-a" class="pdf-tab" onclick="switchPdfTab('a')">📖 전체 해설지</button>
     </div>
     <div id="pdf-table"></div>
-    <button class="pdf-dl" onclick="downloadPdfContent()">🖨️ 인쇄 / PDF 저장</button>
-    <p class="pdf-note">인쇄 창에서 → 대상: PDF로 저장 선택 &nbsp;|&nbsp; 모바일: 공유 → 파일에 저장</p>
+    <button class="pdf-dl" onclick="downloadPdfContent()">🖨️ 인쇄 / 📸 스크린샷 저장</button>
+    <p class="pdf-note" id="pdf-note">🖨️ PC: 인쇄 창에서 <b>PDF로 저장</b> &nbsp;|&nbsp; 📸 모바일·토스앱: <b>이 화면을 스크린샷</b> 하세요</p>
   </div>
 </div>
 <div id="pdf-print-area" style="display:none"></div>
